@@ -1,3 +1,8 @@
+"""This module contains the unit tests for the exodus_helper package.
+
+Part of exodus_helper 1.0: Copyright 2023 Sandia Corporation
+This Software is released under the BSD license detailed in the file
+`license.txt` in the top-level directory"""
 
 # --------------------------------------------------------------------------- #
 

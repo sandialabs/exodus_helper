@@ -1,22 +1,26 @@
+"""This module contains a list of the python bindings to functions in the
+exodus library, version 2.0 from the seacas package:
+    https://github.com/gsjaardema/seacas
+
+To update the list, follow the steps below:
+
+With access to seacas (and exodus.py therein), in the Python interpreter, do
+>>> from exodus import exodus
+List the attributes of the exodus class
+>>> dir(exodus)
+List the attributes with a call method
+>>> [s for s in dir(exodus) if hasattr(getattr(exodus,s),'__call__')]
+
+Part of exodus_helper 1.0: Copyright 2023 Sandia Corporation
+This Software is released under the BSD license detailed in the file
+`license.txt` in the top-level directory"""
 
 # --------------------------------------------------------------------------- #
 
 import numpy as np
 
-# --------------------------------------------------------------------------- #
 
-# This file contains a list of the python bindings to functions in the exodus
-#   library, version 2.0 from the seacas package
-#   https://github.com/gsjaardema/seacas
-#
-# To update the list, follow the steps below:
-#
-# With access to seacas (and exodus.py therein), in the Python interpreter, do
-# >>> from exodus import exodus
-# List the attributes of the exodus class
-# >>> dir(exodus)
-# List the attributes with a call method
-# >>> [s for s in dir(exodus) if hasattr(getattr(exodus,s),'__call__')]
+# --------------------------------------------------------------------------- #
 
 _dir_exodus_full = [
     '__class__',

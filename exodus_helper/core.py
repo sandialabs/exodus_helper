@@ -1,3 +1,9 @@
+"""The core module contains the Exodus class and a handful of closely related
+external functions.
+
+Part of exodus_helper 1.0: Copyright 2023 Sandia Corporation
+This Software is released under the BSD license detailed in the file
+`license.txt` in the top-level directory"""
 
 # --------------------------------------------------------------------------- #
 
