@@ -162,11 +162,10 @@ class RectangularPrism(Exodus):
             self.put_node_set_params(idx + 1, len(nodes), numSetDistFacts=1)
             self.put_node_set(idx + 1, nodes)
 
-        for idx in range(len(side_set_elements)):
+        for idx, element in enumerate(side_set_elements):
             num_sides = len(side_set_sides[idx])
             self.put_side_set_params(idx + 1, num_sides, numSetDistFacts=4)
-            self.put_side_set(
-                idx + 1, side_set_elements[idx], side_set_sides[idx])
+            self.put_side_set(idx + 1, element, side_set_sides[idx])
 
         self.put_elem_id_map(range(1, num_elements + 1))
         self.put_node_id_map(range(1, num_nodes + 1))

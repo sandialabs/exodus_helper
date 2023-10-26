@@ -7,6 +7,11 @@ import time
 import numpy as np
 import pytest
 
+try:  # Get function names for testing
+    from exodus import exodus
+    _dir_exodus_full = list(exodus.__dict__)
+except ImportError:
+    from exodus_helper.dir_exodus import _dir_exodus_full
 import exodus_helper
 from exodus_helper.dir_exodus import _attr_inputs
 
@@ -26,12 +31,6 @@ def test_getters(dir_test_file, monkeypatch):
     file_path = os.path.join(dir_test_file, 'test_full.g')
     mesh_getters = exodus_helper.Exodus(file_path)
 
-    try:  # Get function names for testing
-        from exodus import exodus
-        database_exodus = exodus(file_path)
-        _dir_exodus_full = dir(database_exodus)
-    except ImportError:
-        from exodus_helper.dir_exodus import _dir_exodus_full
     names = [a[0] for a in _dir_exodus_full]
     names_attr = _dir_exodus_full[-names[::-1].index('_'):]
 
@@ -69,12 +68,6 @@ def test_putters(dir_test_file):
     path_copy = os.path.join(dir_test_file, 'test_full_copy.g')
     mesh_copy = mesh_test_full.copy(path_copy)
 
-    try:  # Get function names for testing
-        from exodus import exodus
-        database_exodus = exodus(file_path)
-        _dir_exodus_full = dir(database_exodus)
-    except ImportError:
-        from exodus_helper.dir_exodus import _dir_exodus_full
     names = [a[0] for a in _dir_exodus_full]
     names_attr = _dir_exodus_full[-names[::-1].index('_'):]
 
@@ -367,10 +360,7 @@ def test_get_elem_blk_idx(mesh):
 
 
 def test_get_elem_blk_info(mesh):
-    info = mesh.get_elem_blk_info(1)
-    expected = ['HEX8', 2, 8, 2]
-    for i in range(len(expected)):
-        assert info[i] == expected[i]
+    assert mesh.get_elem_blk_info(1) == ('HEX8', 2, 8, 2)
 
 
 def test_get_elem_blk_name(mesh):
@@ -534,10 +524,7 @@ def test_get_element_blk_idx(mesh):
 
 
 def test_get_element_blk_info(mesh):
-    info = mesh.get_element_blk_info(1)
-    expected = ['HEX8', 2, 8, 2]
-    for i in range(len(expected)):
-        assert info[i] == expected[i]
+    assert mesh.get_element_blk_info(1) == ('HEX8', 2, 8, 2)
 
 
 def test_get_element_blk_name(mesh):
@@ -678,20 +665,17 @@ def test_get_info_records(mesh):
 
 def test_get_node_id_map(mesh):
     id_map = mesh.get_node_id_map()
-    for i in range(8):
-        assert id_map[i] == i + 1
+    assert np.all(id_map == np.arange(1, len(id_map) + 1))
 
 
 def test_get_node_set_dist_facts(mesh):
     facts = mesh.get_node_set_dist_facts(1)
-    for i in range(len(facts)):
-        assert facts[i] == 1
+    assert np.all(facts == 1)
 
 
 def test_get_node_set_ids(mesh):
     ids = mesh.get_node_set_ids()
-    for i in range(len(ids)):
-        assert ids[i] == i + 1
+    assert np.all(ids == np.arange(1, len(ids) + 1))
 
 
 def test_get_node_set_name(mesh):
@@ -1452,9 +1436,7 @@ def test_put_node_set_names(mesh):
 
     # Put and get names
     mesh.put_node_set_names(test_names)
-    names = mesh.get_node_set_names()
-    for i in range(len(test_names)):
-        assert test_names[i] == names[i]
+    assert np.all(test_names == mesh.get_node_set_names())
 
     # Ensure AssertionError is thrown for bad name list length
     try:
@@ -1582,8 +1564,7 @@ def test_put_side_set_names(mesh):
     names = mesh.get_side_set_names()
 
     # Assert all 6 test names are correct
-    for i in range(len(names)):
-        assert names[i] == ss_names[i]
+    assert np.all(names == ss_names)
 
     # Ensure AssertionError is thrown for bad name list length
     try:
@@ -1674,8 +1655,8 @@ def test_put_times(dir_test_file, monkeypatch):
         times = mesh.get_times()
 
         assert mesh.numTimes == 5
-        for i in range(len(times)):
-            assert test_times[i] == times[i]
+        assert np.all(times == test_times)
+
     finally:
         mesh.close()
         os.remove(file_path)

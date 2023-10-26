@@ -1491,10 +1491,7 @@ class Exodus():
         """
         qa_records = []
         try:
-            v = self.dataset.variables['qa_records']
-            for i in range(len(v)):
-                # unpack each record and wrap them in a tuple
-                record = v[i]
+            for record in self.dataset.variables['qa_records'][:]:
                 soft_name = char_to_string(record[0])[0]
                 version = char_to_string(record[1])[0]
                 other = char_to_string(record[2])[0]
@@ -1736,8 +1733,8 @@ class Exodus():
 
             # Ensure valid values
             assert num_vals == len(values)
-            for i in range(len(values)):
-                assert isinstance(values[i], Number)
+            for value in values:
+                assert isinstance(value, Number)
 
             v = self.dataset.variables['vals_glo_var']
             v[step - 1] = values
@@ -1913,9 +1910,9 @@ class Exodus():
             self.dataset.createVariable(
                 name_v, np.dtype('S1'), dimensions=(name_d0, 'len_name'))
 
-        for idx, n in enumerate(names):
-            for p in range(len(n)):
-                self.dataset.variables[name_v][idx, p] = n[p]
+        for idx, name in enumerate(names):
+            put_string(self.dataset.variables[name_v], name, idx=idx)
+
         return True
 
     def put_elem_attr_values(self, id_blk, name_attr, values) -> bool:
