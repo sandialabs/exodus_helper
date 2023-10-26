@@ -24,4 +24,4 @@ jobs:
         pip install scipy
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py') --threshold 8
+        pylint $(git ls-files '*.py') --fail-under=8
