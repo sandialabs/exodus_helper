@@ -26,6 +26,8 @@ PICK_SURFACE = {
 # --------------------------------------------------------------------------- #
 
 class RectangularPrism(Exodus):
+    """Specialization of the Exodus class for rectangular prism geometries.
+        This geometry simplifies eg identifying elements on a surface"""
 
     def __init__(
             self, filename, shape=(1, 1, 1), resolution=(1., 1., 1.),
@@ -169,6 +171,11 @@ class RectangularPrism(Exodus):
         self.put_elem_id_map(range(1, num_elements + 1))
         self.put_node_id_map(range(1, num_nodes + 1))
 
+    @property
+    def shape(self):
+        """tuple(int, int, int): The shape of the mesh."""
+        return self.get_shape()
+
     def get_elems_on_surface(self, surface):
         return self.get_elems_sides_on_surface(surface)[0]
 
@@ -179,7 +186,7 @@ class RectangularPrism(Exodus):
         elems = self.get_elems_on_surface(surface)
         centroids = self.get_elem_centroids()[elems - 1]
         dims = get_dims_surface(surface)
-        idxs_sort = np.lexsort(tuple([centroids[:, d] for d in dims]))
+        idxs_sort = np.lexsort([centroids[:, d] for d in dims])
         return elems[idxs_sort]
 
     def get_elements_on_surface_sorted(self, surface):
@@ -215,13 +222,13 @@ class RectangularPrism(Exodus):
             dims = {'x': 0, 'y': 1, 'z': 2}
             order = [dims[o] for o in order]
         centroids = self.get_elem_centroids()
-        return np.lexsort(tuple([centroids[:, o] for o in order])) + 1
+        return np.lexsort([centroids[:, o] for o in order]) + 1
 
     def get_elements_sorted(self, order='xyz'):
         return self.get_elems_sorted(order=order)
 
-    def get_nodes_on_surface(mesh, surface):
-        coordinates = np.column_stack(mesh.get_coords())
+    def get_nodes_on_surface(self, surface):
+        coordinates = np.column_stack(self.get_coords())
         side, dim = PICK_SURFACE[surface]
         nodes = np.where(
             np.isclose(side(coordinates[:, dim]), coordinates[:, dim]))[0] + 1

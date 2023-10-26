@@ -35,15 +35,12 @@ def render_mesh(mesh, surface, sample_ratio=0.5, return_coords=False):
     # Determine the spatial extent of the data
     dims = get_dims_surface(surface)
     x_min = np.min(centroids[:, dims[0]])
-    x_max = np.max(centroids[:, dims[0]])
-    l_x = x_max - x_min
+    l_x = np.max(centroids[:, dims[0]]) - x_min
     y_min = np.min(centroids[:, dims[1]])
-    y_max = np.max(centroids[:, dims[1]])
-    l_y = y_max - y_min
+    l_y = np.max(centroids[:, dims[1]]) - y_min
 
     # Compute the resolution of the rendered image
-    area = l_x * l_y
-    d_a = area / len(centroids)
+    d_a = l_x * l_y / len(centroids)
     d_x = np.sqrt(d_a) * sample_ratio
     num_x = int(l_x / d_x) + 1 if d_x > 0. else 1
     num_y = int(l_y / d_x) + 1 if d_x > 0. else 1
@@ -57,8 +54,7 @@ def render_mesh(mesh, surface, sample_ratio=0.5, return_coords=False):
     distances = cdist(centroids[:, dims], coords_pixel)
 
     # Find the nodes associated with each element and triangulate
-    connectivity = mesh.get_elem_connectivity_full()
-    nodes = connectivity[elems - 1]
+    nodes = mesh.get_elem_connectivity_full()[elems - 1]
     coords = np.column_stack(mesh.get_coords())
     hulls = [Delaunay(coords[np.ix_(n - 1, dims)]) for n in nodes]
 

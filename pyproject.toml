@@ -43,3 +43,11 @@ filterwarnings = [
     "ignore:tostring.*is deprecated",
     "ignore::UserWarning",
     "ignore::DeprecationWarning"]
+
+[tool.pylint.MASTER]
+ignore-paths = [
+    'conftest.py',
+    'exodus_helper/__init__.py']
+extension-pkg-allow-list = [
+    'scipy',
+    'netCDF4']

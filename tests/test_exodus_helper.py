@@ -41,8 +41,7 @@ def test_getters(dir_test_file, monkeypatch):
         if attr is None:
             # print(f'Need to add: {a}')
             raise AttributeError(f'Need to add: {a}')
-        else:
-            prefix = attr.__name__[:3]
+        prefix = attr.__name__[:3]
         if '__call__' in dir(attr) and prefix != 'put' and prefix != 'set':
             try:
                 # print(f'Current Attribute: {attr.__name__}')
@@ -76,7 +75,6 @@ def test_putters(dir_test_file):
         _dir_exodus_full = dir(database_exodus)
     except ImportError:
         from exodus_helper.dir_exodus import _dir_exodus_full
-    from exodus_helper.dir_exodus import _attr_inputs
     names = [a[0] for a in _dir_exodus_full]
     names_attr = _dir_exodus_full[-names[::-1].index('_'):]
 
@@ -169,14 +167,13 @@ def test_deprecated_methods(mesh):
 
 
 def test_eq(dir_test_file, monkeypatch):
+    """This test determines if Exodus.__eq__ is working correctly."""
     try:
-        """This test determines if Exodus.__eq__ is working correctly."""
         file_path = os.path.join(dir_test_file, 'test_full.g')
         mesh_eq = exodus_helper.Exodus(file_path)
         monkeypatch.setattr('builtins.input', lambda _: 'y')
         file_path_copy = os.path.join(dir_test_file, 'test_full_copy.g')
         mesh_copy = mesh_eq.copy(file_path_copy)
-
         assert mesh_eq == mesh_copy
     finally:
         mesh_eq.close()
@@ -204,8 +201,8 @@ def test_add_variable(dir_test_file):
     name_add = 'var_add'
     mesh_add = exodus_helper.add_variable(
         mesh, path_add, name_add, idx_time, values)
-    dict_attrs, dict_dims, dict_vars = mesh._get_dicts_netcdf()
-    dict_attrs_add, dict_dims_add, dict_vars_add = mesh_add._get_dicts_netcdf()
+    dict_attrs, dict_dims, _ = mesh._get_dicts_netcdf()
+    dict_attrs_add, _, _ = mesh_add._get_dicts_netcdf()
 
     assert dict_attrs == dict_attrs_add
     for k in dict_dims:
@@ -240,68 +237,7 @@ def test_add_variable(dir_test_file):
     os.remove(path_add)
 
 
-# External Functions: Getters ----------------------------------------------- #
-
-def test_get_element_centroids(dir_test_file):
-    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
-    mesh_test = exodus_helper.Exodus(file_path)
-    centroids = mesh_test.get_element_centroids()
-    assert np.allclose(0.0, np.mean(centroids, axis=0))
-    centroids = mesh_test.get_elem_centroids()
-    assert np.allclose(0.0, np.mean(centroids, axis=0))
-
-
-def test_get_elements_on_surface(dir_test_file):
-    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
-    mesh_test = exodus_helper.RectangularPrism(file_path)
-    elems = mesh_test.get_elements_on_surface(1)
-    assert set(elems) == set([1, 2, 3, 4])
-    elems = mesh_test.get_elements_on_surface(2)
-    assert set(elems) == set([5, 6, 7, 8])
-    elems = mesh_test.get_elements_on_surface(3)
-    assert set(elems) == set([1, 2, 5, 6])
-    elems = mesh_test.get_elements_on_surface(4)
-    assert set(elems) == set([3, 4, 7, 8])
-    elems = mesh_test.get_elements_on_surface(5)
-    assert set(elems) == set([2, 4, 6, 8])
-    elems = mesh_test.get_elements_on_surface(6)
-    assert set(elems) == set([1, 3, 5, 7])
-
-
-def test_get_elements_on_surface_sorted(dir_test_file):
-    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
-    mesh_test = exodus_helper.RectangularPrism(file_path)
-    elements = mesh_test.get_elements_on_surface_sorted(1)
-    assert np.allclose(elements, [2, 4, 1, 3])
-    elements = mesh_test.get_elements_on_surface_sorted(2)
-    assert np.allclose(elements, [6, 8, 5, 7])
-    elements = mesh_test.get_elements_on_surface_sorted(3)
-    assert np.allclose(elements, [2, 6, 1, 5])
-    elements = mesh_test.get_elements_on_surface_sorted(4)
-    assert np.allclose(elements, [4, 8, 3, 7])
-    elements = mesh_test.get_elements_on_surface_sorted(5)
-    assert np.allclose(elements, [2, 6, 4, 8])
-    elements = mesh_test.get_elements_on_surface_sorted(6)
-    assert np.allclose(elements, [1, 5, 3, 7])
-
-
-def _test_get_elements_sides_on_surface(function_get, path):
-    file_path = os.path.join(path, 'test_get_x_on_surface.g')
-    mesh_test = exodus_helper.Exodus(file_path)
-    for i in range(1, 7):
-        elems, sides = function_get(mesh_test, i)
-        assert np.all(
-            elems == mesh_test.get_elements_on_surface(i))
-        assert np.all(
-            sides == mesh_test.get_sides_on_surface(i))
-
-
-def _test_get_elements_sorted(function_sort, path):
-    file_path = os.path.join(path, 'test_get_x_on_surface.g')
-    mesh_test = exodus_helper.Exodus(file_path)
-    elems_sorted = function_sort(mesh_test)
-    assert np.all(elems_sorted == [2, 6, 4, 8, 1, 5, 3, 7])
-
+# Getters ------------------------------------------------------------------- #
 
 def test_get_all_global_variable_values(mesh):
     # Dimensions and variables to store global variable names and numbers
@@ -365,13 +301,12 @@ def test_get_coord_names(mesh):
     assert names[2] == 'z'
 
 
+@pytest.mark.insufficient
 def test_get_data_exodus(dir_test_file):
-    try:
-        file_path = os.path.join(
-            dir_test_file, 'test_full.g')
-        mesh_1 = exodus_helper.get_data_exodus(file_path)
-    finally:
-        mesh_1.close()
+    file_path = os.path.join(
+        dir_test_file, 'test_full.g')
+    mesh_1 = exodus_helper.get_data_exodus(file_path)
+    mesh_1.close()
 
     # Check exception handling
     try:
@@ -516,7 +451,7 @@ def test_get_elem_variable_names(mesh):
     assert names[0] == 'test_var1' and names[1] == 'test_var2'
 
 
-def test_get_elem_variable_number(mesh, dir_test_file, monkeypatch):
+def test_get_elem_variable_number(mesh):
     assert mesh.get_elem_variable_number() == 2
 
 
@@ -633,12 +568,12 @@ def test_get_element_order_map(mesh):
 
 
 @pytest.mark.unwritten
-def test_get_element_property_names(mesh):
+def test_get_element_property_names():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_element_property_value(mesh):
+def test_get_element_property_value():
     assert False
 
 
@@ -657,7 +592,7 @@ def test_get_element_variable_number(mesh):
 
 
 @pytest.mark.unwritten
-def test_get_element_variable_truth_table(mesh):
+def test_get_element_variable_truth_table():
     assert False
 
 
@@ -785,32 +720,32 @@ def test_get_node_set_params(mesh):
 
 
 @pytest.mark.unwritten
-def test_get_node_set_property_names(mesh):
+def test_get_node_set_property_names():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_node_set_property_value(mesh):
+def test_get_node_set_property_value():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_node_set_variable_names(mesh):
+def test_get_node_set_variable_names():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_node_set_variable_number(mesh):
+def test_get_node_set_variable_number():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_node_set_variable_truth_table(mesh):
+def test_get_node_set_variable_truth_table():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_node_set_variable_values(mesh):
+def test_get_node_set_variable_values():
     assert False
 
 
@@ -828,7 +763,7 @@ def test_get_node_variable_number(mesh):
     assert node_var_num == 2
 
 
-def test_get_node_variable_values(mesh, dir_test_file):
+def test_get_node_variable_values(mesh):
     values = [float(i + 1) for i in range(12)]
     mesh.put_node_variable_values('test_nv_name', 1, values)
     vals = mesh.get_node_variable_values('test_nv_name', 1)
@@ -1014,7 +949,7 @@ def test_get_side_set_names(mesh):
 
 
 @pytest.mark.unwritten
-def test_get_side_set_node_list(mesh):
+def test_get_side_set_node_list():
     assert False
 
 
@@ -1034,32 +969,32 @@ def test_get_side_set_params(mesh, dir_test_file):
 
 
 @pytest.mark.unwritten
-def test_get_side_set_property_names(mesh):
+def test_get_side_set_property_names():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_side_set_property_value(mesh):
+def test_get_side_set_property_value():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_side_set_variable_names(mesh):
+def test_get_side_set_variable_names():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_side_set_variable_number(mesh):
+def test_get_side_set_variable_number():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_side_set_variable_truth_table(mesh):
+def test_get_side_set_variable_truth_table():
     assert False
 
 
 @pytest.mark.unwritten
-def test_get_side_set_variable_values(mesh):
+def test_get_side_set_variable_values():
     assert False
 
 
@@ -1139,7 +1074,7 @@ def test_set_side_set_variable_truth_table():
 
 # External Functions: Putters ----------------------------------------------- #
 
-def test_put_all_global_variable_values(mesh, dir_test_file):
+def test_put_all_global_variable_values(mesh):
     # Put and get values for time steps 1 and 2
     assert mesh.put_all_global_variable_values(1, [10., 20.])
     assert mesh.put_all_global_variable_values(2, [100., 200.])
@@ -1186,9 +1121,9 @@ def test_put_coord_names(mesh):
 
 
 def test_put_coords(mesh):
-    coordx = [i for i in range(12)]
-    coordy = [i * 10 for i in range(12)]
-    coordz = [i * 100 for i in range(12)]
+    coordx = np.arange(12)
+    coordy = 10 * coordx
+    coordz = 100 * coordx
     mesh.put_coords(coordx, coordy, coordz)
     coords = mesh.get_coords()
     assert np.allclose(coordx, coords[0])
@@ -1228,7 +1163,7 @@ def test_put_elem_attr_names(mesh, dir_test_file, monkeypatch):
         os.remove(file_path)
 
 
-def test_put_elem_attr_values(mesh, dir_test_file):
+def test_put_elem_attr_values(mesh):
     mesh.put_elem_attr_values(1, 'test_name1', [10, 20])
     mesh.put_elem_attr_values(1, 'test_name2', [30, 40])
     vals1 = mesh.get_elem_attr_values(1, 'test_name1')
@@ -1417,7 +1352,7 @@ def test_put_element_id_map(mesh):
 
 
 @pytest.mark.unwritten
-def test_put_element_property_value(mesh):
+def test_put_element_property_value():
     assert False
 
 
@@ -1471,7 +1406,7 @@ def test_put_info_records(dir_test_file, monkeypatch):
 
 def test_put_node_id_map(mesh):
     id_map = mesh.get_node_id_map()
-    test_map = [i for i in reversed(id_map)]
+    test_map = list(reversed(id_map))
     mesh.put_node_id_map(test_map)
     new_map = mesh.get_node_id_map()
     assert np.allclose(new_map, test_map)
@@ -1569,14 +1504,16 @@ def test_put_node_set_variable_values():
     assert False
 
 
+@pytest.mark.insufficient
 def test_put_node_variable_name(mesh):
     # Put method tested in the getter test
     test_get_node_variable_names(mesh)
 
 
-def test_put_node_variable_values(mesh, dir_test_file):
+@pytest.mark.insufficient
+def test_put_node_variable_values(mesh):
     # Put method tested in the getter test
-    test_get_node_variable_values(mesh, dir_test_file)
+    test_get_node_variable_values(mesh)
 
 
 def test_put_qa_records(mesh, dir_test_file, monkeypatch):
@@ -1646,7 +1583,7 @@ def test_put_side_set_names(mesh):
 
     # Assert all 6 test names are correct
     for i in range(len(names)):
-        names[i] == ss_names[i]
+        assert names[i] == ss_names[i]
 
     # Ensure AssertionError is thrown for bad name list length
     try:
@@ -1980,6 +1917,67 @@ def test_map_points_to_elements(dir_test_file, monkeypatch):
 
 
 # Testing the topology module ----------------------------------------------- #
+
+def test_get_element_centroids(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
+    mesh_test = exodus_helper.Exodus(file_path)
+    centroids = mesh_test.get_element_centroids()
+    assert np.allclose(0.0, np.mean(centroids, axis=0))
+    centroids = mesh_test.get_elem_centroids()
+    assert np.allclose(0.0, np.mean(centroids, axis=0))
+
+
+def test_get_elements_on_surface(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
+    mesh_test = exodus_helper.RectangularPrism(file_path)
+    elems = mesh_test.get_elements_on_surface(1)
+    assert set(elems) == set([1, 2, 3, 4])
+    elems = mesh_test.get_elements_on_surface(2)
+    assert set(elems) == set([5, 6, 7, 8])
+    elems = mesh_test.get_elements_on_surface(3)
+    assert set(elems) == set([1, 2, 5, 6])
+    elems = mesh_test.get_elements_on_surface(4)
+    assert set(elems) == set([3, 4, 7, 8])
+    elems = mesh_test.get_elements_on_surface(5)
+    assert set(elems) == set([2, 4, 6, 8])
+    elems = mesh_test.get_elements_on_surface(6)
+    assert set(elems) == set([1, 3, 5, 7])
+
+
+def test_get_elements_on_surface_sorted(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
+    mesh_test = exodus_helper.RectangularPrism(file_path)
+    elements = mesh_test.get_elements_on_surface_sorted(1)
+    assert np.allclose(elements, [2, 4, 1, 3])
+    elements = mesh_test.get_elements_on_surface_sorted(2)
+    assert np.allclose(elements, [6, 8, 5, 7])
+    elements = mesh_test.get_elements_on_surface_sorted(3)
+    assert np.allclose(elements, [2, 6, 1, 5])
+    elements = mesh_test.get_elements_on_surface_sorted(4)
+    assert np.allclose(elements, [4, 8, 3, 7])
+    elements = mesh_test.get_elements_on_surface_sorted(5)
+    assert np.allclose(elements, [2, 6, 4, 8])
+    elements = mesh_test.get_elements_on_surface_sorted(6)
+    assert np.allclose(elements, [1, 5, 3, 7])
+
+
+def test_get_elements_sides_on_surface(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
+    mesh_test = exodus_helper.RectangularPrism(file_path)
+    for i in range(1, 7):
+        elems, sides = mesh_test.get_elements_sides_on_surface(i)
+        assert np.all(
+            elems == mesh_test.get_elements_on_surface(i))
+        assert np.all(
+            sides == mesh_test.get_sides_on_surface(i))
+
+
+def test_get_elements_sorted(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_get_x_on_surface.g')
+    mesh_test = exodus_helper.RectangularPrism(file_path)
+    elems_sorted = mesh_test.get_elements_sorted()
+    assert np.all(elems_sorted == [2, 6, 4, 8, 1, 5, 3, 7])
+
 
 def test_rectangular_prism(dir_test_file, monkeypatch):
     try:

@@ -80,8 +80,6 @@ class DatabaseError(RuntimeError):
     """`DatabaseError` is a subclass of `RuntimeError` and should be raised
     when an `Exodus` method tries to create a dimensions that already exists
     in the mesh's dataset."""
-    def __init__(self):
-        super().__init__()
 
 
 class Exodus():
@@ -495,11 +493,6 @@ class Exodus():
         return self.get_num_times()
 
     @property
-    def shape(self):
-        """tuple(int, int, int): The shape of the mesh."""
-        return self.get_shape()
-
-    @property
     def times(self):
         """`numpy.ndarray`: The time values recorded in the mesh."""
         return self.get_times()
@@ -605,7 +598,6 @@ class Exodus():
 
     def get_all_node_set_params(self):
         warn('Method not implemented: get_all_node_set_params')
-        return None
 
     def get_coord(self, id_node):
         """Get the model coordinates of a single node.
@@ -677,8 +669,7 @@ class Exodus():
         if f'attrib_name{id_blk}' in self.dataset.variables:
             var = self.dataset.variables[f'attrib_name{id_blk}']
             return [decode(var[i]) for i in range(var.shape[0])]
-        else:
-            return []
+        return []
 
     def get_elem_attr_values(self, id_blk, name_elem_attr) -> list:
         """Get the named attribute value from each element in a block.
@@ -828,15 +819,13 @@ class Exodus():
         """
         if 'elem_id_map' in self.dataset.variables:
             return self.dataset.variables['elem_id_map'][:].data
-        else:
-            return np.arange(1, self.num_elems() + 1)
+        return np.arange(1, self.num_elems() + 1)
 
     def get_elem_num_map(self):
         """**Deprecated** use: `Exodus.get_elem_id_map()`"""
         warn(
             'This method is deprecated. Use get_elem_id_map() instead.',
             DeprecationWarning)
-        return None
 
     def get_elem_order_map(self):
         """Get the element order mapping.
@@ -855,8 +844,7 @@ class Exodus():
         """
         if 'elem_order_map' in self.dataset.variables:
             return self.dataset.variables['elem_order_map'][:].data
-        else:
-            return np.arange(1, self.num_elems() + 1)
+        return np.arange(1, self.num_elems() + 1)
 
     def get_elem_property_names(self):
         items = self.dataset.variables.items()
@@ -910,8 +898,7 @@ class Exodus():
         """Get the name of each element variable."""
         if 'name_elem_var' in self.dataset.variables:
             return char_to_string(self.dataset.variables['name_elem_var'][:])
-        else:
-            return []
+        return []
 
     def get_elem_variable_number(self) -> int:
         """Get the number of element variable."""
@@ -942,8 +929,8 @@ class Exodus():
             try:
                 name_netcdf = self.get_name_elem_variable_netcdf(name, id_blk)
                 v = self.dataset.variables[name_netcdf]
-            except KeyError:
-                raise KeyError(f'This mesh has no variable named {name}')
+            except KeyError as exc:
+                raise KeyError(f'No variable named {name}') from exc
         return v[:].data[step - 1, :]
 
     def get_elem_variable_values_all(self, name):
@@ -1069,24 +1056,6 @@ class Exodus():
         """See `Exodus.get_elem_variable_values_block()`"""
         return self.get_elem_variable_values_block(id_blk, name_var)
 
-    # get_elements ---------------------------------------------------------- #
-
-    def get_elements_on_surface(self, surface):
-        """See `Exodus.get_elems_on_surface()`"""
-        return self.get_elems_on_surface(surface)
-
-    def get_elements_on_surface_sorted(self, surface):
-        """See `Exodus.get_elems_on_surface_sorted()`"""
-        return self.get_elems_on_surface_sorted(surface)
-
-    def get_elements_sides_on_surface(self, surface):
-        """See `Exodus.get_elems_sides_on_surface()`"""
-        return self.get_elems_sides_on_surface(surface)
-
-    def get_elements_sorted(self, order='xyz'):
-        """See `Exodus.get_elems_sorted()`"""
-        return self.get_elems_sorted(order=order)
-
     # get_global ------------------------------------------------------------ #
 
     def get_global_variable_names(self) -> list:
@@ -1094,8 +1063,7 @@ class Exodus():
         variables = self.dataset.variables
         if 'name_glo_var' in variables:
             return char_to_string(variables['name_glo_var'][:])
-        else:
-            return []
+        return []
 
     def get_global_variable_number(self) -> int:
         """Get the number of global variables."""
@@ -1140,11 +1108,9 @@ class Exodus():
 
     def get_id_map(self):
         warn('Method not implemented: get_id_map')
-        return None
 
     def get_ids(self):
         warn('Method not implemented: get_ids')
-        return None
 
     def get_ids_elem_in_blk(self, id_blk):
         """Get element IDs for each element element in an element block.
@@ -1191,40 +1157,34 @@ class Exodus():
 
     def get_name(self):
         warn('Method not implemented: get_name')
-        return None
 
     def get_name_elem_variable_netcdf(self, name, id_blk):
         if name in self.dataset.variables:
             return name
-        else:
-            idx_blk = self.get_element_blk_idx(id_blk) + 1
-            try:
-                idx_var = self.get_element_variable_names().index(name) + 1
-            except ValueError:
-                idx_var = None
-            name_netcdf = f'vals_elem_var{idx_var}eb{idx_blk}'
-            if name_netcdf in self.dataset.variables:
-                return name_netcdf
-            else:
-                raise KeyError(f'No variable {name} on block {id_blk}')
+        idx_blk = self.get_element_blk_idx(id_blk) + 1
+        try:
+            idx_var = self.get_element_variable_names().index(name) + 1
+        except ValueError:
+            idx_var = None
+        name_netcdf = f'vals_elem_var{idx_var}eb{idx_blk}'
+        if name_netcdf in self.dataset.variables:
+            return name_netcdf
+        raise KeyError(f'No variable {name} on block {id_blk}')
 
     def get_name_node_variable_netcdf(self, name):
         if name in self.dataset.variables:
             return name
-        else:
-            try:
-                idx_var = self.get_node_variable_names().index(name) + 1
-            except ValueError:
-                idx_var = None
-            name_netcdf = f'vals_nod_var{idx_var}'
-            if name_netcdf in self.dataset.variables:
-                return name_netcdf
-            else:
-                raise KeyError(f'Could not find the variable {name}')
+        try:
+            idx_var = self.get_node_variable_names().index(name) + 1
+        except ValueError:
+            idx_var = None
+        name_netcdf = f'vals_nod_var{idx_var}'
+        if name_netcdf in self.dataset.variables:
+            return name_netcdf
+        raise KeyError(f'Could not find the variable {name}')
 
     def get_names(self):
         warn('Method not implemented: get_names')
-        return None
 
     # get_node -------------------------------------------------------------- #
 
@@ -1244,17 +1204,15 @@ class Exodus():
         """
         if 'node_id_map' in self.dataset.variables:
             return self.dataset.variables['node_id_map'][:].data
-        elif 'node_num_map' in self.dataset.variables:
+        if 'node_num_map' in self.dataset.variables:
             return self.dataset.variables['node_num_map'][:].data
-        else:
-            return np.arange(self.get_num_nodes()) + 1
+        return np.arange(self.get_num_nodes()) + 1
 
     def get_node_num_map(self) -> None:
         """**Deprecated** use: `Exodus.get_node_id_map()`"""
         warn(
             'This method is deprecated. Use get_node_id_map() instead.',
             DeprecationWarning)
-        return None
 
     def get_node_set_dist_facts(self, id_ns):
         """Get the distribution factors of nodes in a nodes set.
@@ -1269,8 +1227,7 @@ class Exodus():
         key = f'dist_fact_ns{idx}'
         if key in self.dataset.variables:
             return self.dataset.variables[key][:].compressed()
-        else:
-            return ARRAY_EMPTY
+        return ARRAY_EMPTY
 
     def get_node_set_ids(self):
         """Get an array of node set IDs.
@@ -1312,9 +1269,8 @@ class Exodus():
         """Get a list of all node set names."""
         if 'ns_names' in self.dataset.variables:
             return char_to_string(self.dataset.variables['ns_names'][:])
-        else:
-            print('This mesh has no node set names')
-            return []
+        print('This mesh has no node set names')
+        return []
 
     def get_node_set_nodes(self, id_ns) -> list:
         """Get a `list` of node indicies in a node set.
@@ -1358,11 +1314,9 @@ class Exodus():
 
     def get_node_set_property_names(self):
         warn('Method not implemented: get_node_set_property_names')
-        return None
 
     def get_node_set_property_value(self):
         warn('Method not implemented: get_node_set_property_value')
-        return None
 
     def get_node_set_variable_names(self):
         return self.dataset.variables.get('name_nset_var', [])
@@ -1375,7 +1329,6 @@ class Exodus():
 
     def get_node_set_variable_values(self):
         warn('Method not implemented: get_node_set_variable_values')
-        return None
 
     def get_node_variable_names(self) -> list:
         """Get the `list` of all nodal variable names."""
@@ -1407,8 +1360,8 @@ class Exodus():
             name_var_netcdf = self.get_name_node_variable_netcdf(name)
             vals = self.dataset.variables[name_var_netcdf][step - 1].data
             return np.asarray(vals, dtype=np.float32)
-        except KeyError:
-            raise KeyError(f'This mesh has no node variable named {name}')
+        except KeyError as exc:
+            raise KeyError(f'No node variable named {name}') from exc
 
     def get_node_variable_values_all(self, name):
         """Get the values of a nodal variable across all time steps.
@@ -1628,7 +1581,6 @@ class Exodus():
 
     def get_side_set_node_list(self):
         warn('Method not implemented: get_side_set_node_list')
-        return None
 
     def get_side_set_params(self, id_ss):
         """Get the number of sides and nodal distribution factors (e.g. nodal
@@ -1652,7 +1604,7 @@ class Exodus():
             key = variables[f'side_ss{idx_ss}'].dimensions[0]
             num_faces = dimensions[key].size
         except KeyError:
-            f'This mesh has no side set whose id_ss={id_ss}'
+            print(f'This mesh has no side set whose id_ss={id_ss}')
             num_faces = 0
             num_dist_facts = 0
         key = f'dist_fact_ss{idx_ss}'
@@ -1683,7 +1635,6 @@ class Exodus():
 
     def get_side_set_variable_values(self):
         warn('Method not implemented: get_side_set_variable_values')
-        return None
 
     def get_times(self):
         """Get a numpy array of all time values."""
@@ -1703,11 +1654,10 @@ class Exodus():
     def set_elem_variable_number(self, num_vars):
         if 'num_elem_var' in self.dataset.dimensions:
             return self.get_elem_variable_number() == num_vars
-        else:
-            self.dataset.createDimension('num_elem_var', num_vars)
-            dimensions = ('num_elem_var', 'len_name')
-            self.dataset.createVariable(
-                'name_elem_var', np.dtype('S1'), dimensions=dimensions)
+        self.dataset.createDimension('num_elem_var', num_vars)
+        dimensions = ('num_elem_var', 'len_name')
+        self.dataset.createVariable(
+            'name_elem_var', np.dtype('S1'), dimensions=dimensions)
         return True
 
     def set_element_variable_number(self, num_vars):
@@ -1724,17 +1674,16 @@ class Exodus():
         if num_vars > 0:
             if 'num_glo_var' in self.dataset.dimensions:
                 return self.get_global_variable_number() == num_vars
-            else:
-                self.dataset.createDimension('num_glo_var', num_vars)
-                dimensions = ('num_glo_var', 'len_name')
-                self.dataset.createVariable(
-                    'name_glo_var', np.dtype('S1'), dimensions=dimensions)
+            self.dataset.createDimension('num_glo_var', num_vars)
+            dimensions = ('num_glo_var', 'len_name')
+            self.dataset.createVariable(
+                'name_glo_var', np.dtype('S1'), dimensions=dimensions)
         return True
 
     def set_node_set_variable_number(self, num_vars):
         if 'num_nset_var' in self.dataset.dimensions:
             return self.get_node_set_variable_number() == num_vars
-        elif num_vars > 0:
+        if num_vars > 0:
             self.dataset.createDimension('num_nset_var', num_vars)
             dimensions = ('num_nset_var', 'len_name')
             self.dataset.createVariable(
@@ -1748,17 +1697,15 @@ class Exodus():
 
     def set_node_variable_number(self):
         warn('Method not implemented: set_node_variable_number')
-        return None
 
     def set_side_set_variable_number(self, num_vars):
         if num_vars > 0:
             if 'num_sset_var' in self.dataset.dimensions:
                 return self.get_side_set_variable_number() == num_vars
-            else:
-                self.dataset.createDimension('num_sset_var', num_vars)
-                dimensions = ('num_sset_var', 'len_name')
-                self.dataset.createVariable(
-                    'name_sset_var', np.dtype('S1'), dimensions=dimensions)
+            self.dataset.createDimension('num_sset_var', num_vars)
+            dimensions = ('num_sset_var', 'len_name')
+            self.dataset.createVariable(
+                'name_sset_var', np.dtype('S1'), dimensions=dimensions)
         return True
 
     def set_side_set_variable_truth_table(self, table):
@@ -1994,11 +1941,11 @@ class Exodus():
             idx = names.index(name_attr)
             self.dataset.variables[f'attrib{id_blk}'][:, idx] = values
             return True
-        except ValueError:
+        except ValueError as exc:
             raise KeyError(
-                f'No attr named {name_attr} found in block {id_blk}')
-        except AssertionError:
-            raise TypeError('len(values) must equal the number of block elems')
+                f'No attr named {name_attr} found in block {id_blk}') from exc
+        except AssertionError as exc:
+            raise TypeError('len(values) must equal number of elems') from exc
 
     def put_elem_blk_info(
             self, id_blk, elem_type, num_elems,
@@ -2204,8 +2151,8 @@ class Exodus():
                         f'vals_elem_var{idx_name}eb{idx_blk}',
                         np.dtype('float'),
                         dimensions=('time_step', f'num_el_in_blk{idx_blk}'))
-                except Exception:
-                    raise KeyError(f'This mesh has no variable named {name}')
+                except Exception as exc:
+                    raise KeyError(f'No variable named {name}') from exc
         v[step - 1, :] = values
         return True
 
@@ -2286,10 +2233,8 @@ class Exodus():
         if 'num_glo_var' not in self.dataset.dimensions:
             print('This mesh has no global variables')
             return False
-        else:
-            put_string(
-                self.dataset.variables['name_glo_var'], name, idx=idx - 1)
-            return True
+        put_string(self.dataset.variables['name_glo_var'], name, idx=idx - 1)
+        return True
 
     def put_global_variable_value(self, name, step, value) -> bool:
         """Store a global variable value for a specified global variable
@@ -2306,16 +2251,14 @@ class Exodus():
         if 'num_glo_var' not in self.dataset.dimensions:
             print('This mesh has no global variables')
             return False
-        else:
-            name_idx = self.get_global_variable_names().index(name)
-            self.dataset.variables['vals_glo_var'][step - 1, name_idx] = value
-            return True
+        name_idx = self.get_global_variable_names().index(name)
+        self.dataset.variables['vals_glo_var'][step - 1, name_idx] = value
+        return True
 
     # put_info -------------------------------------------------------------- #
 
     def put_info(self) -> bool:
         warn('Method not implemented: put_info')
-        return None
 
     def put_info_records(self, info) -> bool:
         """Store static metadata for the database.
@@ -2479,21 +2422,18 @@ class Exodus():
                     f'dist_fact_ns{id_ns}', np.dtype('float'),
                     dimensions=d.name)
                 dataset.variables[f'dist_fact_ns{id_ns}'][:] = 1.
-        except RuntimeError:
-            raise DatabaseError
+        except RuntimeError as exc:
+            raise DatabaseError from exc
         return True
 
     def put_node_set_property_value(self):
         warn('Method not implemented: put_node_set_property_value')
-        return None
 
     def put_node_set_variable_name(self):
         warn('Method not implemented: put_node_set_variable_name')
-        return None
 
     def put_node_set_variable_values(self):
         warn('Method not implemented: put_node_set_variable_values')
-        return None
 
     def put_node_variable_name(self, name, idx) -> bool:
         """Store the name and index of a nodal variable.
@@ -2516,8 +2456,8 @@ class Exodus():
             v = self.dataset.variables['name_nod_var']
             put_string(v, name, idx=idx - 1)
             return True
-        except KeyError:
-            raise KeyError('This mesh has no node variables')
+        except KeyError as exc:
+            raise KeyError('This mesh has no node variables') from exc
 
     def put_node_variable_values(self, name, step, values) -> bool:
         """Store a list of nodal variable values for a nodal variable
@@ -2554,8 +2494,8 @@ class Exodus():
                         name,
                         np.dtype('float'),
                         dimensions=('time_step', 'num_nodes'))
-                except Exception:
-                    raise KeyError(f'This mesh has no variable named {name}')
+                except Exception as exc:
+                    raise KeyError(f'No variable named {name}') from exc
         v[step - 1, :] = values
         return True
 
@@ -2587,7 +2527,7 @@ class Exodus():
         len_line = v.shape[-1]
         for idx_char, entry in enumerate(qa_record):
             length = min(len_line, len(entry))
-            v[idx, idx_char, :length] = [s for s in entry[:length]]
+            v[idx, idx_char, :length] = entry[:length]
         return True
 
     def put_qa_records(self, qa_records) -> bool:
@@ -2749,8 +2689,8 @@ class Exodus():
                     dimensions=key_4)
                 dataset.variables[f'dist_fact_ss{idx_ss}'][:] = np.ones(
                     numSetDistFacts)
-        except RuntimeError:
-            raise DatabaseError
+        except RuntimeError as exc:
+            raise DatabaseError from exc
         return True
 
     def put_side_set_property_value(self, id_ss, name, value):
@@ -2761,11 +2701,9 @@ class Exodus():
 
     def put_side_set_variable_name(self):
         warn('Method not implemented: put_side_set_variable_name')
-        return None
 
     def put_side_set_variable_values(self):
         warn('Method not implemented: put_side_set_variable_values')
-        return None
 
     def put_time(self, step, value) -> bool:
         """Store a new time.
@@ -2848,172 +2786,131 @@ class Exodus():
 
     # Unimplemented methods ------------------------------------------------- #
 
-    def get_all_side_set_params(mesh):
+    def get_all_side_set_params(self):
         warn('Method not implemented: get_all_side_set_params')
-        return None
 
-    def get_assemblies(mesh):
+    def get_assemblies(self):
         warn('Method not implemented: get_assemblies')
-        return None
 
-    def get_assembly(mesh):
+    def get_assembly(self):
         warn('Method not implemented: get_assembly')
-        return None
 
-    def get_attribute_count(mesh):
+    def get_attribute_count(self):
         warn('Method not implemented: get_attribute_count')
-        return None
 
-    def get_attributes(mesh):
+    def get_attributes(self):
         warn('Method not implemented: get_attributes')
-        return None
 
-    def get_blob(mesh):
+    def get_blob(self):
         warn('Method not implemented: get_blob')
-        return None
 
     def get_partial_element_variable_values(self):
         warn('Method not implemented: get_partial_element_variable_values')
-        return None
 
     def get_partial_node_set_variable_values(self):
         warn('Method not implemented: get_partial_node_set_variable_values')
-        return None
 
     def get_partial_node_variable_values(self):
         warn('Method not implemented: get_partial_node_variable_values')
-        return None
 
     def get_partial_side_set_variable_values(self):
         warn('Method not implemented: get_partial_side_set_variable_values')
-        return None
 
     def get_reduction_variable_names(self):
         warn('Method not implemented: get_reduction_variable_names')
-        return None
 
     def get_reduction_variable_number(self):
         warn('Method not implemented: get_reduction_variable_number')
-        return None
 
     def get_reduction_variable_values(self):
         warn('Method not implemented: get_reduction_variable_values')
-        return None
 
     def get_set_params(self):
         warn('Method not implemented: get_set_params')
-        return None
 
     def get_variable_names(self):
         warn('Method not implemented: get_variable_names')
-        return None
 
     def get_variable_number(self):
         warn('Method not implemented: get_variable_number')
-        return None
 
     def get_variable_truth_table(self):
         warn('Method not implemented: get_variable_truth_table')
-        return None
 
     def inquire(self):
         warn('Method not implemented: inquire')
-        return None
 
     def num_assembly(self):
         warn('Method not implemented: num_assembly')
-        return None
 
     def num_blob(self):
         warn('Method not implemented: num_blob')
-        return None
 
     def num_qa_records(self):
         return self.get_num_qa_records()
 
     def put_assemblies(self):
         warn('Method not implemented: put_assemblies')
-        return None
 
     def put_assembly(self):
         warn('Method not implemented: put_assembly')
-        return None
 
     def put_attribute(self):
         warn('Method not implemented: put_attribute')
-        return None
 
     def put_elem_face_conn(self):
         warn('Method not implemented: put_elem_face_conn')
-        return None
 
     def put_face_count_per_polyhedra(self):
         warn('Method not implemented: put_face_count_per_polyhedra')
-        return None
 
     def put_face_node_conn(self):
         warn('Method not implemented: put_face_node_conn')
-        return None
 
     def put_id_map(self):
         warn('Method not implemented: put_id_map')
-        return None
 
     def put_info_ext(self):
         warn('Method not implemented: put_info_ext')
-        return None
 
     def put_name(self):
         warn('Method not implemented: put_name')
-        return None
 
     def put_names(self):
         warn('Method not implemented: put_names')
-        return None
 
     def put_node_count_per_face(self):
         warn('Method not implemented: put_node_count_per_face')
-        return None
 
     def put_polyhedra_elem_blk(self):
         warn('Method not implemented: put_polyhedra_elem_blk')
-        return None
 
     def put_polyhedra_face_blk(self):
         warn('Method not implemented: put_polyhedra_face_blk')
-        return None
 
     def put_reduction_variable_name(self):
         warn('Method not implemented: put_reduction_variable_name')
-        return None
 
     def put_reduction_variable_values(self):
         warn('Method not implemented: put_reduction_variable_values')
-        return None
 
     def put_set_params(self):
         warn('Method not implemented: put_set_params')
-        return None
 
     def put_variable_name(self):
         warn('Method not implemented: put_variable_name')
-        return None
 
     def set_reduction_variable_number(self):
         warn('Method not implemented: set_reduction_variable_number')
-        return None
 
     def set_variable_number(self):
         warn('Method not implemented: set_variable_number')
-        return None
 
     def set_variable_truth_table(self):
         warn('Method not implemented: set_variable_truth_table')
-        return None
 
     def summarize(self):
         warn('Method not implemented: summarize')
-        return None
 
     def _get_dicts_netcdf(self):
         """Get dictionaries of all the NetCDF dataset entities.
@@ -3031,7 +2928,7 @@ class Exodus():
         variables = dataset.variables
         dict_ncattrs = {k: dataset.getncattr(k) for k in dataset.ncattrs()}
         dict_dimensions = {k: d.size for k, d in dimensions.items()}
-        dict_variables = {k: v for k, v in variables.items()}
+        dict_variables = dict(variables.items())
         return dict_ncattrs, dict_dimensions, dict_variables
 
     def _put_ncall(self, dict_ncattrs, dict_dimensions, dict_variables):
@@ -3134,7 +3031,7 @@ def add_variable(mesh, filename, name, step, values, ids_blk=None):
 
 
 def add_qa_record(mesh):
-    dict_ncattrs, dict_dimensions, dict_variables = mesh._get_dicts_netcdf()
+    _, dict_dimensions, dict_variables = mesh._get_dicts_netcdf()
     num_qa_rec = mesh.get_num_qa_records() + 1
     dict_dimensions['num_qa_rec'] = num_qa_rec
     date_stamp = time.strftime('%Y-%m-%d')

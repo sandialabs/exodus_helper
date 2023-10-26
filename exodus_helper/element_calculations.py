@@ -3,6 +3,7 @@
 
 import numpy as np
 
+
 # --------------------------------------------------------------------------- #
 
 def calculate_volume_element(coords, shape_functions='trilinear'):
@@ -168,8 +169,9 @@ def calculate_volume_element(coords, shape_functions='trilinear'):
             + coords[4, 0] * coords[6, 1] * coords[7, 2] \
             + coords[5, 0] * coords[6, 1] * coords[7, 2]
     else:
-        raise Exception('Only shape_functions=\'trilinear\' is supported')
+        raise ValueError('Only shape_functions=\'trilinear\' is supported')
     return v_12 / 12.
+
 
 def calculate_volume_hexahedron(coords):
     """Calculate the volume of a hexahedral mesh.
@@ -206,6 +208,7 @@ def calculate_volume_hexahedron(coords):
 
     return volume
 
+
 def calculate_volumes_element(mesh, id_blk):
     """Calculate the volume of each element in a specified element block within 
     a given mesh.
@@ -223,6 +226,7 @@ def calculate_volumes_element(mesh, id_blk):
     volumes_element = np.array(
         [calculate_volume_element(coords_node[ns - 1]) for ns in connectivity])
     return volumes_element
+
 
 def calculate_volumes_block(mesh):
     """Calculate the voluemes of each element block in a mesh.
