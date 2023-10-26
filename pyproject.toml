@@ -23,6 +23,13 @@ python = '>=3.9,<3.12'
 netCDF4 = '^1.6'
 numpy = '^1.24'
 scipy = '^1.10'
+docstr-coverage = {version = "*", optional = true}
+GitPython = {version = "*", optional = true}
+nbsphinx = {version = "*", optional = true}
+pytest = {version = "*", optional = true}
+pytest-cov = {version = "*", optional = true}
+sphinx = {version = "*", optional = true}
+sphinx_rtd_theme = {version = "*", optional = true}
 
 [tool.poetry.extras]
 testing = ['GitPython', 'pytest', 'pytest-cov']
