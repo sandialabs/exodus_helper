@@ -51,3 +51,6 @@ ignore-paths = [
 extension-pkg-allow-list = [
     'scipy',
     'netCDF4']
+disable = [
+    'E1135',
+    'E1136']
