@@ -1,0 +1,45 @@
+[build-system]
+requires = ['poetry_core>=1.0.0']
+build-backend = 'poetry.core.masonry.api'
+
+[tool.poetry]
+name = 'exodus_helper'
+version = '1.0.0'
+description = 'A package for manipulating ExodusII databases'
+license = 'BSD-3-Clause'
+authors = ['Coleman Alleman <callema@sandia.gov>']
+maintainers = ['Coleman Alleman <callema@sandia.gov>']
+readme = 'README.rst'
+homepage = 'https://github.com/sandialabs/exodus_helper'
+repository = 'https://github.com/sandialabs/exodus_helper'
+documentation = 'https://github.com/sandialabs/exodus_helper'
+keywords = ['finite element', 'ExodusII']
+classifiers = [
+    'Topic :: Software Development :: Libraries :: Python Modules']
+packages =[{include='exodus_helper'}]
+
+[tool.poetry.dependencies]
+python = '>=3.9,<3.12'
+netCDF4 = '^1.6'
+numpy = '^1.24'
+scipy = '^1.10'
+
+[tool.poetry.extras]
+testing = ['GitPython', 'pytest', 'pytest-cov']
+dev = []
+docs = ['docstr-coverage', 'nbsphinx', 'sphinx', 'sphinx_rtd_theme']
+all = ['GitPython', 'pytest', 'pytest-cov', 'docstr-coverage',
+    'nbsphinx', 'sphinx', 'sphinx_rtd_theme']
+
+[tool.pytest.ini_options]
+junit_family = 'xunit2'
+addopts = '--verbose --junitxml=report.xml'
+markers = [
+    "long: marks tests that have non-negligible runtime (deselect with '-m \"not long\"')",
+    "unwritten: marks nominal tests (that assert False) pending development (deselect with '-m \"not unwritten\"')",
+    "insufficient: marks tests that call the tested function but do not verify output (deselect with '-m \"not insufficient\"')",
+    "requires_third_party: marks tests that require third-party applications"]
+filterwarnings = [
+    "ignore:tostring.*is deprecated",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning"]
