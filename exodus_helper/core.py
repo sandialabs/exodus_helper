@@ -2523,11 +2523,8 @@ class Exodus():
                 raise TypeError('qa_records must be a list of strings')
 
         v = self.dataset.variables['qa_records']
-        v[idx, :] = ''
-        len_line = v.shape[-1]
         for idx_char, entry in enumerate(qa_record):
-            length = min(len_line, len(entry))
-            v[idx, idx_char, :length] = entry[:length]
+            put_string(v, entry, idx=(idx, idx_char))
         return True
 
     def put_qa_records(self, qa_records) -> bool:
