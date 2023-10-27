@@ -1,5 +1,5 @@
-exodus\_helper.topology module
-==============================
+topology
+========
 
 .. automodule:: exodus_helper.topology
    :members:

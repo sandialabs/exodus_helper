@@ -1,5 +1,5 @@
-exodus\_helper.render\_mesh module
-==================================
+render\_mesh
+============
 
 .. automodule:: exodus_helper.render_mesh
    :members:

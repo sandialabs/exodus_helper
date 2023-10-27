@@ -1,15 +1,32 @@
-Welcome to exodus_helper's documentation!
-=========================================
+.. include:: ../../README.rst
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Modules
+   :titlesonly:
+
+   core
+   element_calculations
+   reconfigure_mesh
+   render_mesh
+   topology
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples
+   :titlesonly:
+
+   create_meshes
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Supplemental Material:
 
-   exodus_helper
+   CONTRIBUTING
 
-Indices and tables
-==================
 
-* :ref:`genindex`
+Module Index
+============
+
 * :ref:`modindex`
-* :ref:`search`

@@ -1,5 +1,5 @@
-exodus\_helper.element\_calculations module
-===========================================
+element\_calculations
+=====================
 
 .. automodule:: exodus_helper.element_calculations
    :members:

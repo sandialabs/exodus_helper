@@ -1,5 +1,5 @@
-exodus\_helper.reconfigure\_mesh module
-=======================================
+reconfigure\_mesh
+=================
 
 .. automodule:: exodus_helper.reconfigure_mesh
    :members:
