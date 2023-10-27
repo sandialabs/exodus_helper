@@ -19,8 +19,7 @@ from .topology import get_dims_surface
 def render_mesh(mesh, surface, sample_ratio=0.5, return_coords=False):
     """Render the surface of a mesh as a binary image.
 
-    Given a surface, numbered as such:
-        1:x-, 2:x+, 3:y-, 4:y+, 5:z-, 6:z+
+    Given a surface, numbered as such: 1:x-, 2:x+, 3:y-, 4:y+, 5:z-, 6:z+
     find all the elements associated with that surface, and create a binary
     image with 1's within the mesh, and 0's outside.
 
