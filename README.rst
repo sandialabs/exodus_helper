@@ -38,7 +38,7 @@ Installation
 Getting Started
 ---------------
 
-- `Documentation <https://exodus-helper.readthedocs.io/en/latest/index.html/>`_
+- `Documentation <https://exodus-helper.readthedocs.io/en/latest/index.html>`_
 - Release History (link pending)
 - Tutorial Notebook (link pending)
 - Contribution Guidelines (link pending)
