@@ -48,10 +48,15 @@ def scale_mesh(filename, scale=(1., 1., 1.)):
 
     variables = dataset_from.variables
     for k, v in variables.items():
+        attrs = v.ncattrs()
+        fargs = {}
+        if '_FillValue' in attrs:
+            fargs['fill_value'] = v.getncattr('_FillValue')
+            attrs.remove('_FillValue')
         variable = dataset_to.createVariable(
-            k, v.datatype, dimensions=v.dimensions)
+            k, v.datatype, dimensions=v.dimensions, **fargs)
         variable[:] = v[:]
-        for attr in v.ncattrs():
+        for attr in attrs:
             variable.setncattr(attr, v.getncattr(attr))
 
     mesh.close()
