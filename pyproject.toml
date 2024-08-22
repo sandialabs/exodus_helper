@@ -20,9 +20,9 @@ packages =[{include='exodus_helper'}]
 
 [tool.poetry.dependencies]
 python = '>=3.9,<3.12'
-netCDF4 = '^1.6'
-numpy = '^1.24'
-scipy = '^1.10'
+netCDF4 = '^1'
+numpy = '^2'
+scipy = '^1'
 docstr-coverage = {version = "*", optional = true}
 GitPython = {version = "*", optional = true}
 nbsphinx = {version = "*", optional = true}
