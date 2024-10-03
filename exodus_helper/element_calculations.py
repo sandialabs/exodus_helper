@@ -18,8 +18,8 @@ def calculate_volume_element(coords, shape_functions='trilinear'):
     Args:
         coords (list(list(float))): A length-8 (HEX) list of nodal
             coordinate values.
-        shape_functions (str, optional): The name of the shape function used to 
-            interpolate the element's volume from a list of discrete nodal 
+        shape_functions (str, optional): The name of the shape function used to
+            interpolate the element's volume from a list of discrete nodal
             coordinate values. Defaults to `trilinear`.
 
     Returns:
@@ -190,7 +190,7 @@ def calculate_volume_hexahedron(coords):
         numpy.float64: The volume of the hexahedron.
 
     Raises:
-        AssertionError: The coordinates are not compatible with right-hand 
+        AssertionError: The coordinates are not compatible with right-hand
             positive winding.
     """
     centroid = np.mean(coords, axis=0)
@@ -215,8 +215,8 @@ def calculate_volume_hexahedron(coords):
     return volume
 
 
-def calculate_volumes_element(mesh, id_blk):
-    """Calculate the volume of each element in a specified element block within 
+def calculate_volumes_element(mesh, id_blk=None):
+    """Calculate the volume of each element in a specified element block within
     a given mesh.
 
     Args:
@@ -226,8 +226,11 @@ def calculate_volumes_element(mesh, id_blk):
     Returns:
         numpy.ndarray(float): An array of element volumes ordered by element ID
     """
-    connectivity, num_elems, num_nodes = mesh.get_elem_connectivity(id_blk)
-    connectivity = connectivity.reshape((num_elems, num_nodes))
+    if id_blk:
+        connectivity, num_elems, num_nodes = mesh.get_elem_connectivity(id_blk)
+        connectivity = connectivity.reshape((num_elems, num_nodes))
+    else:
+        connectivity = mesh.get_elem_connectivity_full()
     coords_node = np.column_stack(mesh.get_coords())
     volumes_element = np.array(
         [calculate_volume_element(coords_node[ns - 1]) for ns in connectivity])
@@ -241,7 +244,7 @@ def calculate_volumes_block(mesh):
         mesh (Exodus): The `Exodus` instance of a mesh.
 
     Returns:
-        numpy.ndarray(float): An array of element volumes ordered by element 
+        numpy.ndarray(float): An array of element volumes ordered by element
         block ID.
     """
     ids_blk = mesh.get_elem_blk_ids()

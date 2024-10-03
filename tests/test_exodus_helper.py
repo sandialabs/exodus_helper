@@ -866,6 +866,20 @@ def test_get_qa_records(mesh):
     assert isinstance(record[3], str)
 
 
+def test_get_resolution(dir_test_file, monkeypatch):
+    try:
+        shape = (3, 4, 5)
+        resolution = (0.3, 0.2, 0.1)
+        file_path = os.path.join(dir_test_file, 'test_get_shape.g')
+        monkeypatch.setattr('builtins.input', lambda _: 'y')
+        mesh = exodus_helper.RectangularPrism(
+            file_path, shape=shape, resolution=resolution, mode='w')
+        assert np.allclose(mesh.get_resolution(), resolution)
+        mesh.close()
+    finally:
+        os.remove(file_path)
+
+
 def test_get_shape(dir_test_file, monkeypatch):
     try:
         shape = (3, 4, 5)

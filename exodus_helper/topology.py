@@ -177,6 +177,10 @@ class RectangularPrism(Exodus):
         self.put_node_id_map(range(1, num_nodes + 1))
 
     @property
+    def resolution(self):
+        return self.get_resolution()
+
+    @property
     def shape(self):
         """tuple(int, int, int): The shape of the mesh."""
         return self.get_shape()
@@ -260,6 +264,11 @@ class RectangularPrism(Exodus):
                 patches.append(np.array(
                     [coordinates[f - 1] for f in face[1][:num_check]]))
         return patches
+
+    def get_resolution(self):
+        conn = self.get_elem_connectivity_full()
+        coords = np.column_stack(self.get_coords())
+        return np.max(np.abs(np.diff(coords[conn[0] - 1], axis=0)), axis=0)
 
     def get_shape(self):
         num_xs = self.numElem // self.get_elements_on_surface(1).size
