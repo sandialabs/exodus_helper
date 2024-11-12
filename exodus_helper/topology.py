@@ -123,6 +123,12 @@ class RectangularPrism(Exodus):
             shape[0] * shape[1],
             shape[0] * shape[1]]
 
+        elem_blk_info = kwargs.get(
+            'elem_blk_info',
+            ([1], ['HEX8'], [num_elements], [8], [num_attr], True))
+
+        num_el_blk = len(elem_blk_info[0])
+
         super().__init__(
             filename,
             mode='w',
@@ -131,7 +137,7 @@ class RectangularPrism(Exodus):
             num_dim=3,
             num_nodes=num_nodes,
             num_elem=num_elements,
-            num_el_blk=1,
+            num_el_blk=num_el_blk,
             num_node_sets=14,
             num_side_sets=6,
             num_processors=1,
@@ -144,9 +150,9 @@ class RectangularPrism(Exodus):
         variables = self.dataset.variables
 
         self.put_coords(coords_x, coords_y, coords_z)
-        self.put_concat_elem_blk(
-            [1], ['HEX8'], [num_elements], [8], [num_attr], True)
-        variables['connect1'][:] = connectivity + 1
+        self.put_concat_elem_blk(*elem_blk_info)
+        if num_el_blk == 1:
+            variables['connect1'][:] = connectivity + 1
 
         node_set_nodes = []
         side_set_elements = []
