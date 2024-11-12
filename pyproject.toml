@@ -4,7 +4,7 @@ build-backend = 'poetry.core.masonry.api'
 
 [tool.poetry]
 name = 'exodus_helper'
-version = '1.2.0'
+version = '1.2.1'
 description = 'A package for manipulating ExodusII databases'
 license = 'BSD-3-Clause'
 authors = ['Coleman Alleman <callema@sandia.gov>']

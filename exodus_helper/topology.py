@@ -96,7 +96,7 @@ class RectangularPrism(Exodus):
             for idx_y in range(shape[1]):
                 for idx_x in range(shape[0]):
                     i = idx_z * shape[0] * shape[1] + idx_y * shape[0] + idx_x
-                    base = idx_y * num_nodes_x + idx_x + idx_z * num_xy
+                    base = idx_y * num_nodes_x + idx_x + idx_z * num_xy + 1
                     connectivity[i, :] = [
                         base, base + 1,
                         base + num_nodes_x + 1,
@@ -147,12 +147,13 @@ class RectangularPrism(Exodus):
             title='rectangular_prism',
             **kwargs)
 
-        variables = self.dataset.variables
-
         self.put_coords(coords_x, coords_y, coords_z)
         self.put_concat_elem_blk(*elem_blk_info)
-        if num_el_blk == 1:
-            variables['connect1'][:] = connectivity + 1
+        starts = np.cumsum(np.concatenate(([0], elem_blk_info[2])))
+        for idx in range(num_el_blk):
+            id_blk = elem_blk_info[0][idx]
+            connectivity_blk = connectivity[starts[idx]: starts[idx + 1]]
+            self.put_elem_connectivity(id_blk, connectivity_blk)
 
         node_set_nodes = []
         side_set_elements = []

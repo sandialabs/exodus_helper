@@ -1993,6 +1993,21 @@ def test_rectangular_prism(dir_test_file, monkeypatch):
     finally:
         os.remove(file_path)
 
+    try:
+        file_path = os.path.join(
+            dir_test_file, 'test_rectangular_prism.g')
+        monkeypatch.setattr('builtins.input', lambda _: 'y')
+        elem_blk_info = (
+            [1, 2], ['HEX8', 'HEX8'], [32, 32], [8, 8], [0, 0], True)
+        mesh = exodus_helper.RectangularPrism(
+            file_path, shape=(4, 4, 4), mode='w', elem_blk_info=elem_blk_info)
+        for i in mesh.get_side_set_ids():
+            assert mesh.get_side_set(i)[0].size == 16
+            assert mesh.get_node_set_nodes(i).size == 25
+        mesh.close()
+    finally:
+        os.remove(file_path)
+
 
 def test_scale_mesh(dir_test_file, monkeypatch):
     try:
