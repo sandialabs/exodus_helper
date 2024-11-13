@@ -1810,14 +1810,14 @@ class Exodus():
         # Loop through all the block ids and run put_elem_blk_info()
         # Element block info needs to be set sequentially
         self.dataset.variables['eb_status'][:] = 0
-        statuses = self.dataset.variables['eb_status'][:]
         for i in range(idx_len):
             self.put_elem_blk_info(
                 ids_blk[i], block_elem_types[i], block_num_elem[i],
                 block_num_nodes_per_elem[i], block_num_attributes[i])
 
             # The value to modify is the first with status equal to 0
-            idx = np.argwhere(statuses == 0)[0][0]
+            idx = np.argwhere(
+                self.dataset.variables['eb_status'][:] == 0)[0][0]
             self.dataset.variables['eb_status'][idx] = 1
             self.dataset.variables['eb_prop1'][idx] = ids_blk[idx]
         return True
