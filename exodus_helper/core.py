@@ -36,7 +36,12 @@ CONNECTIVITY_SIDES = {
         (1, 2, 4): 1,
         (2, 3, 4): 2,
         (1, 3, 4): 3,
-        (1, 2, 3): 4}}
+        (1, 2, 3): 4},
+    'TETRA10': {
+        (1, 5, 2, 9, 4, 8): 1,
+        (2, 6, 3, 10, 4, 9): 2,
+        (1, 7, 3, 10, 4, 8): 3,
+        (1, 5, 2, 6, 3, 7): 4}}
 
 items_connectivity = CONNECTIVITY_SIDES.items()
 SIDES_CONNECTIVITY = {
@@ -2041,7 +2046,7 @@ class Exodus():
         """Store the nodal connectivity for an element block.
 
         Args:
-            connectivity (numpy.ndarray(float)): A 2D array of node indices.
+            connectivity (numpy.ndarray(int)): A 1D array of node ids.
 
         Returns:
             `True` if successful, otherwise returns `False`.
@@ -2050,8 +2055,11 @@ class Exodus():
         num_elems = self.get_num_elems_in_blk(id_blk)
         num_nodes = self.get_num_nodes_per_elem(id_blk)
         connect = np.reshape(connectivity, (num_elems, num_nodes))
-        self.dataset.variables[f'connect{idx}'][:] = connect
-        return True
+        try:
+            self.dataset.variables[f'connect{idx}'][:] = connect
+            return True
+        except KeyError:
+            return False
 
     def put_elem_id_map(self, elem_id_map) -> bool:
         """Store an element ID mapping.

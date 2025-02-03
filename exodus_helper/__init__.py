@@ -13,6 +13,7 @@ __version__ = importlib.metadata.version(__package__)
 __version_info__ = parse(__version__).release
 
 from .core import CONNECTIVITY_SIDES
+from .core import SIDES_CONNECTIVITY
 from .core import Exodus
 from .core import add_variable
 from .core import get_data_exodus
@@ -27,6 +28,7 @@ from .render_mesh import map_points_to_elements
 
 from .topology import RectangularPrism
 
+from .reconfigure_mesh import convert_tet4_tet10
 from .reconfigure_mesh import create_sets_canonical
 from .reconfigure_mesh import scale_mesh
 

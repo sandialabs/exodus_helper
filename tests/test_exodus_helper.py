@@ -19,6 +19,7 @@ except ImportError:
     from exodus_helper.dir_exodus import _dir_exodus_full
 import exodus_helper
 from exodus_helper.dir_exodus import _attr_inputs
+from exodus_helper.reconfigure_mesh import IDXS_EDGES_4
 
 
 # --------------------------------------------------------------------------- #
@@ -1819,6 +1820,20 @@ def test_calculate_volumes_block(dir_test_file):
 
 
 # Testing the reconfigure_mesh module --------------------------------------- #
+
+def test_convert_tet4_tet10(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_convert_tet.g')
+    mesh_converted = exodus_helper.convert_tet4_tet10(file_path)
+    connectivity = mesh_converted.get_elem_connectivity_full()[:]
+    coords = np.stack(mesh_converted.get_coords()).T
+    for ids_node in connectivity:
+        for idx, edge in enumerate(IDXS_EDGES_4):
+            coords_0 = coords[ids_node[edge[0]] - 1]
+            coords_1 = coords[ids_node[edge[1]] - 1]
+            coords_2 = coords[ids_node[idx + 4] - 1]
+            assert np.allclose(0.5 * (coords_0 + coords_1), coords_2)
+    os.remove(os.path.join(dir_test_file, 'test_convert_tet_tet10.g'))
+
 
 def test_create_sets_canonical(dir_test_file):
     file_path = os.path.join(dir_test_file, 'test_create_sets_canonical.g')

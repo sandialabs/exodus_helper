@@ -6,6 +6,7 @@ This Software is released under the BSD license detailed in the file
 
 # --------------------------------------------------------------------------- #
 
+from itertools import permutations
 import os
 import sys
 
@@ -18,52 +19,102 @@ from .topology import RectangularPrism
 
 # --------------------------------------------------------------------------- #
 
-def scale_mesh(filename, scale=(1., 1., 1.)):
-    """Scale the dimensions of a mesh by multiplying the coordinate values of
-    the mesh by the scaling weights.
+IDXS_EDGES_4 = [[0, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3]]
 
-    Args:
-        filename (str): Name of a .g file created in association with a mesh.
-        scale (tuple(float), optional): A list of scaling weights.
-            Defaults to (1., 1., 1.).
 
-    Raises:
-        AssertionError: The filename must correspond to an existing .g file.
-    """
-    assert os.path.isfile(filename)
-    root, ext = os.path.splitext(filename)
+# --------------------------------------------------------------------------- #
 
-    mesh = Exodus(filename)
-    dataset_from = mesh.dataset
+def convert_tet4_tet10(filename_from, filename_to=None, **kwargs):
 
-    dataset_to = netCDF4.Dataset(
-        root + '_scaled' + ext, mode='w', format=dataset_from.data_model)
+    mesh_from = Exodus(filename_from)
 
-    for attr in dataset_from.ncattrs():
-        dataset_to.setncattr(attr, dataset_from.getncattr(attr))
+    num_elements = mesh_from.get_num_elems()
+    connectivity_to = np.zeros((num_elements, 10), dtype=int)
+    connectivity_from = mesh_from.get_elem_connectivity_full()[:]
+    connectivity_to[:, :4] = connectivity_from
 
-    dimensions = dataset_from.dimensions
-    for k, v in dimensions.items():
-        dataset_to.createDimension(k, size=v.size)
+    coords_from = np.stack(mesh_from.get_coords()).T
+    num_nodes_from = len(coords_from)
 
-    variables = dataset_from.variables
-    for k, v in variables.items():
-        attrs = v.ncattrs()
-        fargs = {}
-        if '_FillValue' in attrs:
-            fargs['fill_value'] = v.getncattr('_FillValue')
-            attrs.remove('_FillValue')
-        variable = dataset_to.createVariable(
-            k, v.datatype, dimensions=v.dimensions, **fargs)
-        variable[:] = v[:]
-        for attr in attrs:
-            variable.setncattr(attr, v.getncattr(attr))
+    dims = mesh_from.dataset.dimensions
+    num_ns = dims['num_ns_global'].size
+    num_ss = dims['num_ss_global'].size
 
-    mesh.close()
-    dataset_to.variables['coordx'][:] *= scale[0]
-    dataset_to.variables['coordy'][:] *= scale[1]
-    dataset_to.variables['coordz'][:] *= scale[2]
-    dataset_to.close()
+    num_side_sss = [dims[f'num_side_ss{n}'].size for n in range(1, num_ss + 1)]
+
+    pairs_elem_all = {}
+    coords_to = coords_from.tolist()
+    for idx_elem, ids_node in enumerate(connectivity_from):
+        pairs_elem = [tuple(ids_node[i]) for i in IDXS_EDGES_4]
+        for idx_pair, pair in enumerate(pairs_elem):
+            if pair in pairs_elem_all:
+                id_node_new = pairs_elem_all[pair]
+            else:
+                id_node_new = num_nodes_from + len(pairs_elem_all) + 1
+                pairs_elem_all[pair] = id_node_new
+                idxs_old = [p - 1 for p in pair]
+                coords_to.append(np.mean(coords_from[idxs_old, :], axis=0))
+            connectivity_to[idx_elem, 4 + idx_pair] = id_node_new
+
+    ids_node_set = mesh_from.get_node_set_ids()
+    sets_nodes = []
+    for id_node_set in ids_node_set:
+        ids_node = mesh_from.get_node_set_nodes(id_node_set).tolist()
+        pairs = permutations(ids_node, 2)
+        for pair in pairs:
+            id_new = pairs_elem_all.get(pair, pairs_elem_all.get(pair[::-1]))
+            if id_new not in ids_node and id_new is not None:
+                ids_node.append(id_new)
+        sets_nodes.append(ids_node)
+
+    num_nod_nss = [len(s) for s in sets_nodes]
+
+    ids_blk = mesh_from.get_elem_blk_ids()
+    define_maps = True
+    nums_elems = [mesh_from.get_num_elems_in_blk(i) for i in ids_blk]
+    nums_nodes = [10 for i in ids_blk]
+    nums_attrs = [0 for i in ids_blk]
+    elem_types = ['TETRA10' for i in ids_blk]
+
+    dict_attrs, dict_dimensions, dict_variables = mesh_from._get_dicts_netcdf()
+
+    if filename_to is None:
+        filename_to = '_tet10'.join(os.path.splitext(filename_from))
+    mesh_to = Exodus(
+        filename_to,
+        mode='w',
+        num_info=mesh_from.get_num_info_records() + 1,
+        num_dim=mesh_from.numDim,
+        num_nodes=len(coords_to),
+        num_elem=num_elements,
+        num_el_blk=len(ids_blk),
+        num_node_sets=num_ns,
+        num_side_sets=num_ss,
+        num_nod_nss=num_nod_nss,
+        num_side_sss=num_side_sss,
+        title=kwargs.get('title', mesh_from.get_title()),
+        **kwargs)
+
+    mesh_to.put_coords(*np.array(coords_to).T)
+    mesh_to.put_concat_elem_blk(
+        ids_blk, elem_types, nums_elems, nums_nodes, nums_attrs, define_maps)
+    variables = mesh_to.dataset.variables
+    for i in ids_blk:
+        idxs_elem = mesh_from.get_idxs_elem_in_blk(i)
+        variables[f'connect{i}'][:] = connectivity_to[idxs_elem]
+
+    ids_side_set = mesh_from.get_side_set_ids()
+    for id_side_set in ids_side_set:
+        ids_elem, ids_side = mesh_from.get_side_set(id_side_set)
+        num_sides = mesh_from.get_num_faces_in_side_set(id_side_set)
+        mesh_to.put_side_set_params(id_side_set, num_sides)
+        mesh_to.put_side_set(id_side_set, ids_elem, ids_side)
+
+    for id_node_set, ids_node in zip(ids_node_set, sets_nodes):
+        mesh_to.put_node_set_params(id_node_set, len(ids_node))
+        mesh_to.put_node_set(id_node_set, ids_node)
+
+    return mesh_to
 
 
 def create_sets_canonical(filename):
@@ -205,6 +256,54 @@ def create_sets_canonical(filename):
     dataset_to.createVariable(
         'ss_names', np.dtype('S1'), dimensions=('num_side_sets', 'len_name'))
 
+    dataset_to.close()
+
+
+def scale_mesh(filename, scale=(1., 1., 1.)):
+    """Scale the dimensions of a mesh by multiplying the coordinate values of
+    the mesh by the scaling weights.
+
+    Args:
+        filename (str): Name of a .g file created in association with a mesh.
+        scale (tuple(float), optional): A list of scaling weights.
+            Defaults to (1., 1., 1.).
+
+    Raises:
+        AssertionError: The filename must correspond to an existing .g file.
+    """
+    assert os.path.isfile(filename)
+    root, ext = os.path.splitext(filename)
+
+    mesh = Exodus(filename)
+    dataset_from = mesh.dataset
+
+    dataset_to = netCDF4.Dataset(
+        root + '_scaled' + ext, mode='w', format=dataset_from.data_model)
+
+    for attr in dataset_from.ncattrs():
+        dataset_to.setncattr(attr, dataset_from.getncattr(attr))
+
+    dimensions = dataset_from.dimensions
+    for k, v in dimensions.items():
+        dataset_to.createDimension(k, size=v.size)
+
+    variables = dataset_from.variables
+    for k, v in variables.items():
+        attrs = v.ncattrs()
+        fargs = {}
+        if '_FillValue' in attrs:
+            fargs['fill_value'] = v.getncattr('_FillValue')
+            attrs.remove('_FillValue')
+        variable = dataset_to.createVariable(
+            k, v.datatype, dimensions=v.dimensions, **fargs)
+        variable[:] = v[:]
+        for attr in attrs:
+            variable.setncattr(attr, v.getncattr(attr))
+
+    mesh.close()
+    dataset_to.variables['coordx'][:] *= scale[0]
+    dataset_to.variables['coordy'][:] *= scale[1]
+    dataset_to.variables['coordz'][:] *= scale[2]
     dataset_to.close()
 
 
