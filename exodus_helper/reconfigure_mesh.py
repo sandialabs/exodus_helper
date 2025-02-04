@@ -95,6 +95,8 @@ def convert_tet4_tet10(filename_from, filename_to=None, **kwargs):
         title=kwargs.get('title', mesh_from.get_title()),
         **kwargs)
 
+    mesh_to.dataset.createDimension('time_step', size=None)
+
     mesh_to.put_coords(*np.array(coords_to).T)
     mesh_to.put_concat_elem_blk(
         ids_blk, elem_types, nums_elems, nums_nodes, nums_attrs, define_maps)

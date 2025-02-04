@@ -4,7 +4,7 @@ build-backend = 'poetry.core.masonry.api'
 
 [tool.poetry]
 name = 'exodus_helper'
-version = '1.2.2'
+version = '1.3.1'
 description = 'A package for manipulating ExodusII databases'
 license = 'BSD-3-Clause'
 authors = ['Coleman Alleman <callema@sandia.gov>']
@@ -19,7 +19,7 @@ classifiers = [
 packages =[{include='exodus_helper'}]
 
 [tool.poetry.dependencies]
-python = '>=3.10,<3.13'
+python = '>=3.11,<3.13'
 netCDF4 = '^1'
 numpy = '^1'
 packaging = '^24'
