@@ -25,13 +25,18 @@ IDXS_EDGES_4 = [[0, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3]]
 # --------------------------------------------------------------------------- #
 
 def convert_tet4_tet10(filename_from, filename_to=None, **kwargs):
+    """This converts a 4 node tetrahedral element to a 10 node tetrahedral
+    element by placing additional nodes at the midpoint of every edge."""
 
+    # Extract input mesh
     mesh_from = Exodus(filename_from)
 
+    # Get the old connectivity and use it to start the new connectivity
     num_elements = mesh_from.get_num_elems()
     connectivity_to = np.zeros((num_elements, 10), dtype=int)
     connectivity_from = mesh_from.get_elem_connectivity_full()[:]
     connectivity_to[:, :4] = connectivity_from
+    breakpoint()
 
     coords_from = np.stack(mesh_from.get_coords()).T
     num_nodes_from = len(coords_from)
