@@ -1821,7 +1821,8 @@ def test_calculate_volumes_block(dir_test_file):
 
 # Testing the reconfigure_mesh module --------------------------------------- #
 
-def test_convert_tet4_tet10(dir_test_file):
+def test_convert_tet4_tet10(dir_test_file, monkeypatch):
+    # monkeypatch.setattr('builtins.input', lambda _: 'y')
     file_path = os.path.join(dir_test_file, 'test_convert_tet.g')
     mesh_converted = exodus_helper.convert_tet4_tet10(file_path)
     connectivity = mesh_converted.get_elem_connectivity_full()[:]
@@ -1832,6 +1833,15 @@ def test_convert_tet4_tet10(dir_test_file):
             coords_1 = coords[ids_node[edge[1]] - 1]
             coords_2 = coords[ids_node[idx + 4] - 1]
             assert np.allclose(0.5 * (coords_0 + coords_1), coords_2)
+    mins = []
+    for idx_coords, coords_now in enumerate(coords[:-1]):
+        norms = np.linalg.norm(coords[idx_coords + 1:] - coords_now, axis=1)
+        mins.append(np.min(norms))
+        breakpoint()
+        assert not np.any(np.isclose(norms, 0))
+
+    print(np.min(mins))
+
     os.remove(os.path.join(dir_test_file, 'test_convert_tet_tet10.g'))
 
 

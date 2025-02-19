@@ -25,40 +25,75 @@ IDXS_EDGES_4 = [[0, 1], [1, 2], [0, 2], [0, 3], [1, 3], [2, 3]]
 # --------------------------------------------------------------------------- #
 
 def convert_tet4_tet10(filename_from, filename_to=None, **kwargs):
-    """This converts a 4 node tetrahedral element to a 10 node tetrahedral
-    element by placing additional nodes at the midpoint of every edge."""
+    """Convert a 4-node tetrahedral mesh into a 10-node tetrahedral mesh by
+    adding mid-edge nodes to existing edges.
 
-    # Extract input mesh
+    Args:
+        filename_from (str): Name of a .g file created in association with a
+        tet4 mesh.
+
+        filename_to (str): Name of the resultant .g file for the tet10 mesh.
+
+    Returns:
+        mesh_to (): The converted mesh.
+    """
+
+    # Extract the tet4 mesh
     mesh_from = Exodus(filename_from)
 
-    # Get the old connectivity and use it to start the new connectivity
+    # Initiate the tet10 connectivity from the tet4 connectivity.
+    ### NOTE: NODE NUMBERS IN SIERRA START AT 1 ###
     num_elements = mesh_from.get_num_elems()
     connectivity_to = np.zeros((num_elements, 10), dtype=int)
     connectivity_from = mesh_from.get_elem_connectivity_full()[:]
     connectivity_to[:, :4] = connectivity_from
-    breakpoint()
 
+    # Get coordinates of vertex nodes
     coords_from = np.stack(mesh_from.get_coords()).T
     num_nodes_from = len(coords_from)
 
+    # Doing something, ns =14 and ss=6
     dims = mesh_from.dataset.dimensions
     num_ns = dims['num_ns_global'].size
     num_ss = dims['num_ss_global'].size
 
+    # Getting sides for the things above. it comes out to 242 for each instance
+    # of ss
     num_side_sss = [dims[f'num_side_ss{n}'].size for n in range(1, num_ss + 1)]
 
+    # Initiate dictionary that gives the node number for the mid-node of an
+    # edge
     pairs_elem_all = {}
+
+    # Initiate coordinates for tet10 mesh
     coords_to = coords_from.tolist()
+
+    # Loop over the elements in the tet4 mesh
     for idx_elem, ids_node in enumerate(connectivity_from):
-        pairs_elem = [tuple(ids_node[i]) for i in IDXS_EDGES_4]
+
+        # Create the pairs of nodes which define an edge for this element. We
+        # sort them in ascending order otherwise the logic-gate below results
+        # in redundant nodes:
+        pairs_elem = [tuple(sorted(sublist)) for sublist in
+                      [tuple(ids_node[i]) for i in IDXS_EDGES_4]]
+
+        # Loop over the edges of the element
         for idx_pair, pair in enumerate(pairs_elem):
+
+            # If the edge has already been considered, consult the dictionary
             if pair in pairs_elem_all:
                 id_node_new = pairs_elem_all[pair]
             else:
+                # Get the node number for the new node at the mid-point
                 id_node_new = num_nodes_from + len(pairs_elem_all) + 1
                 pairs_elem_all[pair] = id_node_new
+
+                # Get coordinates for new mid-edge node. Since sierra node
+                # numbers start at one, subtract one for averaging
                 idxs_old = [p - 1 for p in pair]
                 coords_to.append(np.mean(coords_from[idxs_old, :], axis=0))
+
+            # Add this node to the connectivity of the tet10 mesh
             connectivity_to[idx_elem, 4 + idx_pair] = id_node_new
 
     ids_node_set = mesh_from.get_node_set_ids()
