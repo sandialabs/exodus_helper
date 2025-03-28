@@ -32,6 +32,20 @@ CONNECTIVITY_SIDES = {
         (1, 4, 5, 8): 4,
         (1, 2, 3, 4): 5,
         (5, 6, 7, 8): 6},
+    'HEX27': {
+        (1, 2, 6, 5, 9, 14, 17, 13, 26): 1,
+        (2, 3, 7, 6, 10, 15, 18, 14, 25): 2,
+        (3, 4, 8, 7, 11, 16, 19, 15, 27): 3,
+        (1, 5, 8, 4, 13, 20, 16, 12, 24): 4,
+        (1, 4, 3, 2, 12, 11, 10, 9, 22): 5,
+        (5, 6, 7, 8, 17, 18, 19, 20, 23): 6},
+    'HEX16': {
+        (1, 2, 6, 5, 9, 13, 0, 0): 1,
+        (2, 3, 7, 6, 10, 14, 0, 0): 2,
+        (3, 4, 8, 7, 11, 15, 0, 0): 3,
+        (4, 1, 5, 8, 12, 16, 0, 0): 4,
+        (1, 4, 3, 2, 12, 11, 10, 9): 5,
+        (5, 6, 7, 8, 13, 14, 15, 16): 6},
     'TETRA': {
         (1, 2, 4): 1,
         (2, 3, 4): 2,
@@ -41,7 +55,82 @@ CONNECTIVITY_SIDES = {
         (1, 5, 2, 9, 4, 8): 1,
         (2, 6, 3, 10, 4, 9): 2,
         (1, 7, 3, 10, 4, 8): 3,
-        (1, 5, 2, 6, 3, 7): 4}}
+        (1, 5, 2, 6, 3, 7): 4},
+    'TETRA14': {
+        (1, 2, 4, 5, 9, 8, 14): 1,
+        (2, 3, 4, 6, 10, 9, 12): 2,
+        (1, 4, 3, 8, 10, 7, 13): 3,
+        (1, 3, 2, 7, 6, 5, 11): 4},
+    'TRI': {
+        (1, 2, 4): 1,
+        (2, 3, 5): 2,
+        (3, 1, 6): 3},
+    'TRI3': {
+        (1, 2, 3, 4, 5, 6, 7): 1,
+        (3, 2, 1, 6, 5, 4, 7): 2,
+        (1, 2, 4, 0, 0, 0, 0): 3,
+        (2, 3, 5, 0, 0, 0, 0): 4,
+        (3, 1, 6, 0, 0, 0, 0): 5},
+    'QUAD': {
+        (1, 2, 5): 1,
+        (2, 3, 6): 2,
+        (3, 4, 7): 3,
+        (4, 1, 8): 4},
+    'SHELL': {
+        (1, 2, 3, 4, 5, 6, 7, 8, 9): 1,
+        (1, 4, 3, 2, 8, 7, 6, 5, 9): 2,
+        (1, 2, 5, 0, 0, 0, 0, 0, 0): 3,
+        (2, 3, 6, 0, 0, 0, 0, 0, 0): 4,
+        (3, 4, 7, 0, 0, 0, 0, 0, 0): 5,
+        (4, 1, 8, 0, 0, 0, 0, 0, 0): 6},
+    'SHELL4': {
+        (1, 2, 3, 4): 1,
+        (1, 4, 3, 2): 2},
+    'WEDGE6': {
+        (1, 2, 5, 4): 1,
+        (2, 3, 6, 5): 2,
+        (1, 4, 6, 3): 3,
+        (1, 3, 2, 0): 4,
+        (4, 5, 6, 0): 5},
+    'WEDGE12': {
+        (1, 2, 5, 4, 7, 10): 1,
+        (2, 3, 6, 5, 8, 11): 2,
+        (1, 4, 6, 3, 9, 12): 3,
+        (1, 3, 2, 9, 8, 7): 4,
+        (4, 5, 6, 10, 11, 12): 5},
+    'WEDGE15': {
+        (1, 2, 5, 4, 7, 11, 13, 10): 1,
+        (2, 3, 6, 5, 8, 12, 14, 11): 2,
+        (1, 4, 6, 3, 10, 15, 12, 9): 3,
+        (1, 3, 2, 9, 8, 7, 0, 0): 4,
+        (4, 5, 6, 13, 14, 15, 0, 0): 5},
+    'WEDGE20': {
+        (1, 2, 5, 4, 7, 11, 13, 10, 20): 1,
+        (2, 3, 6, 5, 8, 12, 14, 11, 18): 2,
+        (1, 4, 6, 3, 10, 15, 12, 9, 19): 3,
+        (1, 3, 2, 9, 8, 7, 16, 0, 0): 4,
+        (4, 5, 6, 13, 14, 15, 17, 0, 0): 5},
+    'WEDGE21': {
+        (1, 2, 5, 4, 7, 11, 13, 10, 21): 1,
+        (2, 3, 6, 5, 8, 12, 14, 11, 19): 2,
+        (1, 4, 6, 3, 10, 15, 12, 9, 20): 3,
+        (1, 3, 2, 9, 8, 7, 17, 0, 0): 4,
+        (4, 5, 6, 13, 14, 15, 18, 0, 0): 5},
+    'WEDGE18': {
+        (1, 2, 5, 4, 7, 11, 13, 10, 16): 1,
+        (2, 3, 6, 5, 8, 12, 14, 11, 17): 2,
+        (1, 4, 6, 3, 10, 15, 12, 9, 18): 3,
+        (1, 3, 2, 9, 8, 7, 0, 0, 0): 4,
+        (4, 5, 6, 13, 14, 15, 0, 0, 0): 5},
+    'PYRAMID': {
+        (1, 2, 5, 0, 6, 11, 10, 0, 15): 1,
+        (2, 3, 5, 0, 7, 12, 11, 0, 16): 2,
+        (3, 4, 5, 0, 8, 13, 12, 0, 17): 3,
+        (1, 5, 4, 0, 10, 13, 9, 0, 18): 4,
+        (1, 4, 3, 2, 9, 8, 7, 6, 14): 5}}
+
+CONNECTIVITY_SIDES['HEX8'] = CONNECTIVITY_SIDES['HEX']
+CONNECTIVITY_SIDES['TETRA4'] = CONNECTIVITY_SIDES['TETRA']
 
 items_connectivity = CONNECTIVITY_SIDES.items()
 SIDES_CONNECTIVITY = {
@@ -379,6 +468,8 @@ class Exodus():
                     dimensions='num_elem', fill_value=1)
                 dataset.createVariable(
                     'node_id_map', self.int_type, dimensions='num_nodes')
+                self.put_node_id_map(
+                    np.arange(dimensions['num_nodes'].size) + 1)
 
                 # node and side set variables
                 if self.get_num_node_sets() > 0:
@@ -829,7 +920,8 @@ class Exodus():
             A `numpy.ndarray` of all 1-based element element IDs (ints)
         """
         if 'elem_id_map' in self.dataset.variables:
-            return self.dataset.variables['elem_id_map'][:].data
+            if not np.all(self.dataset.variables['elem_id_map'][:].mask):
+                return self.dataset.variables['elem_id_map'][:].data
         return np.arange(1, self.num_elems() + 1)
 
     def get_elem_num_map(self):
@@ -1124,7 +1216,7 @@ class Exodus():
         warn('Method not implemented: get_ids')
 
     def get_ids_elem_in_blk(self, id_blk):
-        """Get element IDs for each element element in an element block.
+        """Get element IDs for each element in an element block.
 
         Args:
             id_blk (int): Element block ID.
@@ -1134,6 +1226,18 @@ class Exodus():
         """
         idxs_elem_in_blk = self.get_idxs_elem_in_blk(id_blk)
         return self.get_elem_id_map()[idxs_elem_in_blk]
+
+    def get_idxs_elem(self, ids_elem):
+        """Get indices of elements with given ids
+
+        Args:
+            ids_elem (array-like): Element ids to query
+
+        Returns:
+            A `numpy.ndarray` of element indices (int)
+        """
+        elem_id_map = self.get_elem_id_map()
+        return np.array([np.where(elem_id_map == i)[0][0] for i in ids_elem])
 
     def get_idxs_elem_in_blk(self, id_blk):
         """Return the indices of the elements in a given block
@@ -1155,6 +1259,18 @@ class Exodus():
         """`numpy.ndarray`: The index of each element start block"""
         ids_blk = self.get_elem_blk_ids()
         return np.cumsum([0] + [self.num_elems_in_blk(i) for i in ids_blk])
+
+    def get_idxs_node(self, ids_node):
+        """Get indices of nodes with given ids
+
+        Args:
+            ids_node (array-like): Node ids to query
+
+        Returns:
+            A `numpy.ndarray` of node indices (int)
+        """
+        elem_id_map = self.get_elem_id_map()
+        return np.array([np.where(elem_id_map == i)[0][0] for i in ids_node])
 
     def get_info_records(self) -> list:
         """Get a list of info records where each entry in the list is one info
@@ -1214,9 +1330,11 @@ class Exodus():
             A `numpy.array` of node IDs (ints).
         """
         if 'node_id_map' in self.dataset.variables:
-            return self.dataset.variables['node_id_map'][:].data
+            if not np.all(self.dataset.variables['node_id_map'][:].mask):
+                return self.dataset.variables['node_id_map'][:].data
         if 'node_num_map' in self.dataset.variables:
-            return self.dataset.variables['node_num_map'][:].data
+            if not np.all(self.dataset.variables['node_num_map'][:].mask):
+                return self.dataset.variables['node_num_map'][:].data
         return np.arange(self.get_num_nodes()) + 1
 
     def get_node_num_map(self) -> None:
@@ -1587,8 +1705,27 @@ class Exodus():
         ss_names = self.dataset.variables.get('ss_names', ARRAY_EMPTY)
         return [char_to_string(name)[0] for name in ss_names]
 
-    def get_side_set_node_list(self):
-        warn('Method not implemented: get_side_set_node_list')
+    def get_side_set_node_list(self, id_ss):
+        """Get the node ids for nodes on sides in a side set with given id
+
+        Args:
+            id_ss (int): Side set ID
+
+        Returns:
+            A `numpy.ndarray` of node ids (int)
+        """
+
+        ids_elem, ids_side = self.get_side_set(id_ss)
+        connectivity = self.get_elem_connectivity_full()
+        ids_node = connectivity[self.get_idxs_elem(ids_elem)]
+
+        type_elem = self.get_elem_type(self.get_element_blk_ids()[0])
+        sides = SIDES_CONNECTIVITY[type_elem]
+        idxs_node = np.array([sides[i] for i in ids_side]) - 1
+        ids_nodes_sides = np.unique(
+            [ids_node[i, idx] for i, idx in enumerate(idxs_node)])
+
+        return len(ids_nodes_sides), ids_nodes_sides
 
     def get_side_set_params(self, id_ss):
         """Get the number of sides and nodal distribution factors (e.g. nodal
