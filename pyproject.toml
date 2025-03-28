@@ -21,7 +21,7 @@ packages =[{include='exodus_helper'}]
 [tool.poetry.dependencies]
 python = '>=3.11,<3.13'
 netCDF4 = '^1'
-numpy = '^1'
+numpy = '^2'
 packaging = '^24'
 scipy = '^1'
 docstr-coverage = {version = "*", optional = true}
