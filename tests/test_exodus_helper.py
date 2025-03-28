@@ -267,6 +267,7 @@ def test_get_all_side_set_params():
 
 def test_get_coord(mesh):
     # Assert correct return type
+    coords = mesh.get_coords()
     coord = mesh.get_coord(1)
     for c in coord:
         assert isinstance(c, np.ndarray)
@@ -276,18 +277,33 @@ def test_get_coord(mesh):
     mesh.put_coords(coord_vals, coord_vals, coord_vals)
     for i, v in enumerate(coord_vals):
         assert np.all(np.stack(mesh.get_coord(i + 1)) == float(v))
+    mesh.put_coords(*coords)
 
 
 def test_get_coords(mesh):
     # Assert correct return type
-    coords = np.stack(mesh.get_coords()).T
+    coords = mesh.get_coords()
     for coord in coords:
         assert isinstance(coord, np.ndarray)
 
     # Assert that the correct values are fetched
-    coord_vals = np.arange(mesh.get_num_nodes())
-    for i, v in enumerate(coord_vals):
-        assert np.all(coords[i] == float(v))
+    num_nodes_x = mesh.shape[0] + 1
+    num_nodes_y = mesh.shape[1] + 1
+    num_nodes_z = mesh.shape[2] + 1
+
+    idxs_x = np.arange(num_nodes_x)
+    idxs_y = np.arange(num_nodes_y)
+    idxs_z = np.arange(num_nodes_z)
+
+    idxs = np.meshgrid(idxs_y, idxs_z, idxs_x)
+
+    idxs_yg = idxs[0].flatten()
+    idxs_zg = idxs[1].flatten()
+    idxs_xg = idxs[2].flatten()
+
+    assert np.allclose(coords[0], mesh.resolution[0] * idxs_xg)
+    assert np.allclose(coords[1], mesh.resolution[1] * idxs_yg)
+    assert np.allclose(coords[2], mesh.resolution[2] * idxs_zg)
 
 
 def test_get_coord_names(mesh):
@@ -980,9 +996,11 @@ def test_get_side_set_names(mesh):
         assert names[i - 1] == f'test_ss_name{i}'
 
 
-@pytest.mark.unwritten
-def test_get_side_set_node_list():
-    assert False
+def test_get_side_set_node_list(mesh):
+    num_nodes, nodes = mesh.get_side_set_node_list(1)
+    assert num_nodes == len(nodes)
+    nodes_check = mesh.get_nodes_on_surface(1)
+    assert set(nodes) == set(nodes_check)
 
 
 def test_get_side_set_params(mesh, dir_test_file):
@@ -1153,14 +1171,16 @@ def test_put_coord_names(mesh):
 
 
 def test_put_coords(mesh):
+    coords = mesh.get_coords()
     coordx = np.arange(12)
     coordy = 10 * coordx
     coordz = 100 * coordx
     mesh.put_coords(coordx, coordy, coordz)
-    coords = mesh.get_coords()
-    assert np.allclose(coordx, coords[0])
-    assert np.allclose(coordy, coords[1])
-    assert np.allclose(coordz, coords[2])
+    coords_new = mesh.get_coords()
+    assert np.allclose(coordx, coords_new[0])
+    assert np.allclose(coordy, coords_new[1])
+    assert np.allclose(coordz, coords_new[2])
+    mesh.put_coords(*coords)
 
 
 # put_elem ------------------------------------------------------------------ #
