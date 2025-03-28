@@ -654,6 +654,24 @@ def test_get_idxs_elem_start_blk(mesh):
     assert idxs[0] == 0 and idxs[1] == 2
 
 
+def test_get_idxs_elem(mesh):
+    ids = mesh.get_elem_id_map()
+    np.random.shuffle(ids)
+    mesh.put_elem_id_map(ids)
+    idxs = mesh.get_idxs_elem(ids)
+    assert np.all(idxs == np.arange(mesh.get_num_elems()))
+    mesh.put_elem_id_map(np.sort(ids))
+
+
+def test_get_idxs_node(mesh):
+    ids = mesh.get_node_id_map()
+    np.random.shuffle(ids)
+    mesh.put_node_id_map(ids)
+    idxs = mesh.get_idxs_node(ids)
+    assert np.all(idxs == np.arange(mesh.get_num_nodes()))
+    mesh.put_node_id_map(np.sort(ids))
+
+
 def test_get_info_records(mesh):
     assert 'info_records' in mesh.dataset.variables
     assert 'num_info' in mesh.dataset.dimensions

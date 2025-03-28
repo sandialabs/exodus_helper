@@ -1269,8 +1269,8 @@ class Exodus():
         Returns:
             A `numpy.ndarray` of node indices (int)
         """
-        elem_id_map = self.get_elem_id_map()
-        return np.array([np.where(elem_id_map == i)[0][0] for i in ids_node])
+        node_id_map = self.get_node_id_map()
+        return np.array([np.where(node_id_map == i)[0][0] for i in ids_node])
 
     def get_info_records(self) -> list:
         """Get a list of info records where each entry in the list is one info
