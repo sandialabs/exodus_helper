@@ -684,13 +684,23 @@ def test_get_node_set_ids(mesh):
     assert np.all(ids == np.arange(1, len(ids) + 1))
 
 
-def test_get_node_set_name(mesh):
+def test_get_node_set_name(dir_test_file, monkeypatch):
     # Put and get a node set name
-    assert mesh.put_node_set_name(1, 'test_ns_name1')
-    assert mesh.get_node_set_name(1) == 'test_ns_name1'
+
+    try:
+        file_path = os.path.join(dir_test_file, 'delete_me.g')
+        monkeypatch.setattr('builtins.input', lambda _: 'y')
+        mesh = exodus_helper.Exodus(file_path, mode='w', numNodeSets=2)
+        mesh.put_node_set_params(99, 1)
+        mesh.put_node_set_name(99, 'test_ns_name1')
+        assert mesh.get_node_set_name(99) == 'test_ns_name1'
+    finally:
+        mesh.close()
+        os.remove(file_path)
 
 
 def test_get_node_set_names(mesh):
+    assert mesh.put_node_set_name(1, 'test_ns_name1')
     assert mesh.put_node_set_name(2, 'test_ns_name2')
     names = mesh.get_node_set_names()
     assert names[0] == 'test_ns_name1'
@@ -1472,7 +1482,7 @@ def test_put_node_set_params(dir_test_file, monkeypatch):
         # Params can only be used once on a fresh mesh
         file_path = os.path.join(dir_test_file, 'delete_me.g')
         monkeypatch.setattr('builtins.input', lambda _: 'y')
-        mesh = exodus_helper.Exodus(file_path, mode='w')
+        mesh = exodus_helper.Exodus(file_path, mode='w', numNodeSets=1)
         mesh.put_node_set_params(1, 1, numSetDistFacts=1)
 
         # Assert that dimensions and variables were created properly

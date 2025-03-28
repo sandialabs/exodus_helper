@@ -278,13 +278,13 @@ class Exodus():
 
                     for idx in range(dimensions['num_el_blk'].size):
                         d1 = dataset.createDimension(
-                            f'num_el_in_blk{idx+1}',
+                            f'num_el_in_blk{idx + 1}',
                             size=num_el_in_blks[idx])
                         d2 = dataset.createDimension(
-                            f'num_nod_per_el{idx+1}',
+                            f'num_nod_per_el{idx + 1}',
                             size=num_nodes_per_els[idx])
                         v = dataset.createVariable(
-                            f'connect{idx+1}',
+                            f'connect{idx + 1}',
                             self.int_type,
                             dimensions=(d1.name, d2.name))
 
@@ -383,10 +383,10 @@ class Exodus():
                 # node and side set variables
                 if self.get_num_node_sets() > 0:
                     v = variables['ns_prop1']
-                    v[:] = np.arange(dimensions['num_node_sets'].size) + 1
+                    # v[:] = np.arange(dimensions['num_node_sets'].size) + 1
                     v.setncattr('name', 'ID')
                     v = variables['ns_status']
-                    v[:] = [1] * dimensions['num_node_sets'].size
+                    v[:] = [0] * dimensions['num_node_sets'].size
 
                 if self.get_num_side_sets() > 0:
                     v = variables['ss_prop1']
@@ -2423,16 +2423,23 @@ class Exodus():
         """
         try:
             dataset = self.dataset
-            d = dataset.createDimension(f'num_nod_ns{id_ns}', size=num_nodes)
+            if id_ns in dataset.variables['ns_prop1']:
+                idx = list(dataset.variables['ns_prop1']).index(id_ns)
+            else:
+                idx = np.argwhere(dataset.variables['ns_status'][:] == 0)[0][0]
+                dataset.variables['ns_prop1'][idx] = id_ns
+            dataset.variables['ns_status'][idx] = 1
+
+            d = dataset.createDimension(f'num_nod_ns{idx + 1}', size=num_nodes)
             dataset.createVariable(
-                f'node_ns{id_ns}', self.int_type, dimensions=d.name)
+                f'node_ns{idx + 1}', self.int_type, dimensions=d.name)
             if numSetDistFacts > 0:
                 d = dataset.createDimension(
-                    f'num_df_ns{id_ns}', size=num_nodes)
+                    f'num_df_ns{idx + 1}', size=num_nodes)
                 dataset.createVariable(
-                    f'dist_fact_ns{id_ns}', np.dtype('float'),
+                    f'dist_fact_ns{idx + 1}', np.dtype('float'),
                     dimensions=d.name)
-                dataset.variables[f'dist_fact_ns{id_ns}'][:] = 1.
+                dataset.variables[f'dist_fact_ns{idx + 1}'][:] = 1.
         except RuntimeError as exc:
             raise DatabaseError from exc
         return True
