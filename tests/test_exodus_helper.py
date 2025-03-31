@@ -496,7 +496,7 @@ def test_get_elem_variable_values_block(mesh):
 # get_element --------------------------------------------------------------- #
 
 def test_get_element_attribute(mesh):
-    attrs = mesh.get_element_attribute(1)
+    attrs = mesh.get_element_attributes(1)
     assert attrs[0] == 1.
     assert attrs[1] == 2.
     assert attrs[2] == 3.
@@ -1324,9 +1324,9 @@ def test_put_elem_variable_values(mesh):
 
 # put_element --------------------------------------------------------------- #
 
-def test_put_element_attribute(mesh):
-    mesh.put_element_attribute(1, [1., 2., 3., 4.])
-    attrs = mesh.get_element_attribute(1)
+def test_put_element_attributes(mesh):
+    mesh.put_element_attributes(1, [1., 2., 3., 4.])
+    attrs = mesh.get_element_attributes(1)
     for i in range(4):
         assert attrs[i] == i + 1
 
@@ -1600,6 +1600,45 @@ def test_put_qa_records(mesh, dir_test_file, monkeypatch):
         assert False
     except TypeError:
         assert True
+
+
+def test_put_set_params(dir_test_file, monkeypatch):
+    try:
+        # Params can only be used once on a fresh mesh
+        file_path = os.path.join(dir_test_file, 'delete_me.g')
+        monkeypatch.setattr('builtins.input', lambda _: 'y')
+        mesh = exodus_helper.Exodus(
+            file_path, mode='w', numNodeSets=1, numSideSets=1)
+        mesh.put_set_params('EX_NODE_SET', 1, 1, numSetDistFacts=1)
+
+        # Assert that dimensions and variables were created properly
+        assert mesh.dataset.dimensions['num_nod_ns1'].size == 1
+
+        v1 = mesh.dataset.variables['node_ns1']
+        assert v1.dtype == mesh.int_type
+        assert v1.size == 1
+
+        v2 = mesh.dataset.variables['dist_fact_ns1']
+        assert v2.dtype == np.dtype('float')
+        assert v2[0].data == 1
+
+        mesh.put_set_params('EX_SIDE_SET', 2, 3, numSetDistFacts=3)
+        assert mesh.dataset.dimensions['num_side_ss1'].size == 3
+        assert mesh.dataset.dimensions['num_df_ss1'].size == 3
+
+        v1 = mesh.dataset.variables['side_ss1']
+        assert v1.dtype == mesh.int_type
+        assert v1.size == 3
+        v2 = mesh.dataset.variables['elem_ss1']
+        assert v2.dtype == mesh.int_type
+        assert v2.size == 3
+        v3 = mesh.dataset.variables['dist_fact_ss1']
+        assert v3.dtype == np.dtype('float')
+        assert v3.size == 3
+
+    finally:
+        mesh.close()
+        os.remove(file_path)
 
 
 # put_side ------------------------------------------------------------------ #

@@ -7,6 +7,7 @@ This Software is released under the BSD license detailed in the file
 
 # --------------------------------------------------------------------------- #
 
+from enum import Enum
 from numbers import Number
 import os
 import time
@@ -173,6 +174,15 @@ ARRAY_EMPTY = ARRAY_MASKED.compressed()
 #     1 ------ 2
 
 
+# Property codes
+EX_NODE_SET = 2
+EX_EDGE_SET = 7
+EX_FACE_SET = 9
+EX_ELEM_BLOCK = 1
+EX_ELEM_SET = 10
+EX_SIDE_SET = 3
+
+
 # --------------------------------------------------------------------------- #
 
 
@@ -180,6 +190,29 @@ class DatabaseError(RuntimeError):
     """`DatabaseError` is a subclass of `RuntimeError` and should be raised
     when an `Exodus` method tries to create a dimensions that already exists
     in the mesh's dataset."""
+
+
+class EntityType(Enum):
+    """Enumeration of entity types for general get/set operations"""
+    EX_NODAL = 14
+    EX_NODE_BLOCK = 14
+    EX_NODE_SET = 2
+    EX_EDGE_BLOCK = 6
+    EX_EDGE_SET = 7
+    EX_FACE_BLOCK = 8
+    EX_FACE_SET = 9
+    EX_ELEM_BLOCK = 1
+    EX_ELEM_SET = 10
+    EX_SIDE_SET = 3
+    EX_ELEM_MAP = 4
+    EX_NODE_MAP = 5
+    EX_EDGE_MAP = 11
+    EX_FACE_MAP = 12
+    EX_GLOBAL = 13
+    EX_COORDINATE = 15
+    EX_ASSEMBLY = 16
+    EX_BLOB = 17
+    EX_INVALID = -1
 
 
 class Exodus():
@@ -608,73 +641,7 @@ class Exodus():
         """float: The Exodus version number."""
         return self.dataset.getncattr('version')
 
-    # exodus.py get methods not named as such ------------------------------- #
-
-    def elem_blk_info(self, id_blk):
-        """See `Exodus.get_elem_blk_info()`."""
-        return self.get_elem_blk_info(id_blk)
-
-    def elem_type(self, id_blk) -> str:
-        """See `Exodus.get_elem_type()`."""
-        return self.get_elem_type(id_blk)
-
-    def num_attr(self, id_blk) -> int:
-        """See `Exodus.get_num_attr()`."""
-        return self.get_num_attr(id_blk)
-
-    def num_blks(self) -> int:
-        """See `Exodus.get_num_blks()`."""
-        return self.get_num_blks()
-
-    def num_dimensions(self) -> int:
-        """See `Exodus.get_num_dimensions()`."""
-        return self.get_num_dimensions()
-
-    def num_elems(self) -> int:
-        """See `Exodus.get_num_elems()`."""
-        return self.get_num_elems()
-
-    def num_elems_in_blk(self, id_blk) -> int:
-        """See `Exodus.get_num_elems_in_blk()`."""
-        return self.get_num_elems_in_blk(id_blk)
-
-    def num_faces_in_side_set(self, id_ss) -> int:
-        """See `Exodus.get_num_faces_in_side_set()`."""
-        return self.get_num_faces_in_side_set(id_ss)
-
-    def num_info_records(self) -> int:
-        """See `Exodus.get_num_info_records()`."""
-        return self.get_num_info_records()
-
-    def num_node_sets(self) -> int:
-        """See `Exodus.get_num_node_sets()`."""
-        return self.get_num_node_sets()
-
-    def num_nodes(self) -> int:
-        """See `Exodus.get_num_nodes()`."""
-        return self.get_num_nodes()
-
-    def num_nodes_in_node_set(self, id_ns) -> int:
-        """See `Exodus.get_num_nodes_in_node_set()`."""
-        return self.get_num_nodes_in_node_set(id_ns)
-
-    def num_nodes_per_elem(self, id_blk) -> int:
-        """See `Exodus.get_num_nodes_per_elem()`."""
-        return self.get_num_nodes_per_elem(id_blk)
-
-    def num_side_sets(self) -> int:
-        """See `Exodus.get_num_side_sets()`."""
-        return self.numSideSets
-
-    def num_times(self) -> int:
-        """See `Exodus.get_num_times()`."""
-        return self.get_num_times()
-
-    def version_num(self) -> float:
-        """See `Exodus.get_version_num()`."""
-        return self.get_version_num()
-
-    # exodus.py get methods named as such ----------------------------------- #
+    # Getter methods -------------------------------------------------------- #
 
     def get_all_global_variable_values(self, step):
         """Get all global variable values at a specified time step.
@@ -749,6 +716,10 @@ class Exodus():
         key = f'attrib{self.get_elem_blk_idx(id_blk) + 1}'
         return self.dataset.variables.get(key, ARRAY_MASKED)[:].compressed()
 
+    get_elem_attribute = get_elem_attr
+    get_element_attr = get_elem_attr
+    get_element_attributes = get_elem_attr
+
     def get_elem_attr_all(self):
         """Get the attributes of every element block in the mesh.
 
@@ -758,6 +729,10 @@ class Exodus():
         """
         ids_blk = self.get_elem_blk_ids()
         return np.concatenate([self.get_elem_attr(i) for i in ids_blk])
+
+    get_elem_attribute_all = get_elem_attr_all
+    get_element_attr_all = get_elem_attr_all
+    get_element_attribute_all = get_elem_attr_all
 
     def get_elem_attr_names(self, id_blk) -> list:
         """Get the names of each attribute in a specified element block.
@@ -772,6 +747,10 @@ class Exodus():
             var = self.dataset.variables[f'attrib_name{id_blk}']
             return [decode(var[i]) for i in range(var.shape[0])]
         return []
+
+    get_elem_attribute_names = get_elem_attr_names
+    get_element_attr_names = get_elem_attr_names
+    get_element_attribute_names = get_elem_attr_names
 
     def get_elem_attr_values(self, id_blk, name_elem_attr) -> list:
         """Get the named attribute value from each element in a block.
@@ -788,6 +767,10 @@ class Exodus():
             print(f'There is no attr named {name_elem_attr} in block {id_blk}')
             attrs = ARRAY_EMPTY
         return attrs[:]
+
+    get_elem_attribute_values = get_elem_attr_values
+    get_element_attr_values = get_elem_attr_values
+    get_element_attribute_values = get_elem_attr_values
 
     def get_elem_attr_values_all(self, name_elem_attr):
         """Get the values of every element block attribute.
@@ -806,6 +789,10 @@ class Exodus():
         return np.concatenate(
             [self.get_elem_attr_values(i, name_elem_attr) for i in ids_blk])
 
+    get_elem_attribute_values_all = get_elem_attr_values_all
+    get_element_attr_values_all = get_elem_attr_values_all
+    get_element_attribute_values_all = get_elem_attr_values_all
+
     def get_elem_blk_ids(self):
         """ Get all the element block IDs.
 
@@ -823,6 +810,8 @@ class Exodus():
         """
         return self.dataset.variables['eb_prop1'][:].data
 
+    get_element_blk_ids = get_elem_blk_ids
+
     def get_elem_blk_idx(self, id_blk) -> int:
         """Get the 0-based index of the element block with a given block ID.
 
@@ -830,6 +819,8 @@ class Exodus():
             id_blk (int): Element block ID.
         """
         return list(self.get_elem_blk_ids()).index(id_blk)
+
+    get_element_blk_idx = get_elem_blk_idx
 
     def get_elem_blk_info(self, id_blk):
         """Get the element block info of a specified element block.
@@ -853,6 +844,10 @@ class Exodus():
         num_attrs = self.get_num_attr(id_blk)
         return elem_type, num_elems_blk, num_nodes_per_elem, num_attrs
 
+    get_element_blk_info = get_elem_blk_info
+    elem_blk_info = get_elem_blk_info
+    element_blk_info = get_elem_blk_info
+
     def get_elem_blk_name(self, id_blk):
         """Get the element block name.
 
@@ -862,15 +857,21 @@ class Exodus():
         idx = self.get_elem_blk_idx(id_blk)
         return char_to_string(self.dataset.variables['eb_names'][idx])[0]
 
+    get_element_blk_name = get_elem_blk_name
+
     def get_elem_blk_names(self) -> list:
         """Get the name of each element block in order of block ID."""
         return char_to_string(self.dataset.variables['eb_names'][:])
+
+    get_element_blk_names = get_elem_blk_names
 
     def get_elem_centroids(self):
         """Get a numpy array of element centroids."""
         coordinates = np.column_stack(self.get_coords())
         connectivity = self.get_elem_connectivity_full()[:]
         return np.mean([coordinates[c - 1] for c in connectivity], axis=1)
+
+    get_element_centroids = get_elem_centroids
 
     def get_elem_connectivity(self, id_blk):
         """Get the nodal connectivity, number of elements, and
@@ -882,6 +883,8 @@ class Exodus():
         idx = self.get_elem_blk_idx(id_blk) + 1
         connect = self.dataset.variables[f'connect{idx}']
         return connect[:].compressed(), connect.shape[0], connect.shape[1]
+
+    get_element_connectivity = get_elem_connectivity
 
     def get_elem_connectivity_full(self):
         """Get the nodal connectivity of every element block.
@@ -904,6 +907,8 @@ class Exodus():
             connectivity_full = np.concatenate((connectivity_full, connect))
         return connectivity_full
 
+    get_element_connectivity_full = get_elem_connectivity_full
+
     def get_elem_id_map(self):
         """Get all the element IDs.
 
@@ -923,6 +928,8 @@ class Exodus():
             if not np.all(self.dataset.variables['elem_id_map'][:].mask):
                 return self.dataset.variables['elem_id_map'][:].data
         return np.arange(1, self.num_elems() + 1)
+
+    get_element_id_map = get_elem_id_map
 
     def get_elem_num_map(self):
         """**Deprecated** use: `Exodus.get_elem_id_map()`"""
@@ -949,10 +956,14 @@ class Exodus():
             return self.dataset.variables['elem_order_map'][:].data
         return np.arange(1, self.num_elems() + 1)
 
+    get_element_order_map = get_elem_order_map
+
     def get_elem_property_names(self):
         items = self.dataset.variables.items()
         props = [v for k, v in items if k.startswith('eb_prop')]
         return [p.getncattr('name') for p in props]
+
+    get_element_property_names = get_elem_property_names
 
     def get_elem_property_value(self, id_blk, name):
         id_prop = self.get_elem_property_names().index(name) + 1
@@ -960,33 +971,7 @@ class Exodus():
         idx_blk = self.get_elem_blk_idx(id_blk)
         return props[idx_blk]
 
-    def get_idx_ns(self, id_ns) -> int:
-        """Get the index of a node set.
-
-        Returns:
-            Returns a 0-based index if the node set exists. If the node set
-            doesn't exist, an empty numpy array is returned instead.
-        """
-        try:
-            ns_idx = list(self.get_node_set_ids()).index(id_ns)
-        except ValueError:
-            print(f'This mesh has no side set whose id_ss={id_ns}')
-            ns_idx = ARRAY_EMPTY
-        return ns_idx
-
-    def get_idx_ss(self, id_ss) -> int:
-        """Get the index of a side set.
-
-        Returns:
-            Returns a 0-based index if the side set exists. If the side set
-            doesn't exist, an empty numpy array is returned instead.
-        """
-        try:
-            ss_idx = list(self.get_side_set_ids()).index(id_ss)
-        except ValueError:
-            print(f'This mesh has no side set whose id_ss={id_ss}')
-            ss_idx = ARRAY_EMPTY
-        return ss_idx
+    get_element_property_value = get_elem_property_value
 
     def get_elem_type(self, id_blk) -> str:
         """Get the element type of an element block, e.g. 'HEX8'.
@@ -997,18 +982,28 @@ class Exodus():
         idx = self.get_elem_blk_idx(id_blk) + 1
         return self.dataset.variables[f'connect{idx}'].getncattr('elem_type')
 
+    get_element_type = get_elem_type
+    elem_type = get_elem_type
+    element_type = get_elem_type
+
     def get_elem_variable_names(self) -> list:
         """Get the name of each element variable."""
         if 'name_elem_var' in self.dataset.variables:
             return char_to_string(self.dataset.variables['name_elem_var'][:])
         return []
 
+    get_element_variable_names = get_elem_variable_names
+
     def get_elem_variable_number(self) -> int:
         """Get the number of element variable."""
         return self.dataset.dimensions.get('num_elem_var', DIMENSION_ZERO).size
 
+    get_element_variable_number = get_elem_variable_number
+
     def get_elem_variable_truth_table(self):
         return self.dataset.variables.get('elem_var_tab', [])
+
+    get_element_variable_truth_table = get_elem_variable_truth_table
 
     def get_elem_variable_values(self, id_blk, name, step):
         """Get an array of element variable values for a specified element
@@ -1036,6 +1031,8 @@ class Exodus():
                 raise KeyError(f'No variable named {name}') from exc
         return v[:].data[step - 1, :]
 
+    get_element_variable_values = get_elem_variable_values
+
     def get_elem_variable_values_all(self, name):
         """Get an array of element variable values from each element block.
 
@@ -1049,6 +1046,8 @@ class Exodus():
         ids_blk = self.get_elem_blk_ids()
         return np.column_stack(
             [self.get_element_variable_values_block(i, name) for i in ids_blk])
+
+    get_element_variable_values_all = get_elem_variable_values_all
 
     def get_elem_variable_values_block(self, id_blk, name_var):
         """Get an array of element variable values from a specified block.
@@ -1064,100 +1063,7 @@ class Exodus():
         name_var_netcdf = self.get_name_elem_variable_netcdf(name_var, id_blk)
         return self.dataset.variables[name_var_netcdf][:].data
 
-    # get_element ----------------------------------------------------------- #
-
-    def get_element_attribute(self, id_blk):
-        """See `Exodus.get_elem_attr()`"""
-        return self.get_elem_attr(id_blk)
-
-    def get_element_attribute_all(self):
-        """See `Exodus.get_elem_attr_all()`"""
-        return self.get_elem_attr_all()
-
-    def get_element_attribute_names(self, id_blk):
-        """See `Exodus.get_elem_attr_names()`"""
-        return self.get_elem_attr_names(id_blk)
-
-    def get_element_attribute_values(self, id_blk, name_elem_attr):
-        """See `Exodus.get_elem_attr_values()`"""
-        return self.get_elem_attr_values(id_blk, name_elem_attr)
-
-    def get_element_attribute_values_all(self, name_elem_attr):
-        """See `Exodus.get_elem_attr_values_all()`"""
-        return self.get_elem_attr_values_all(name_elem_attr)
-
-    def get_element_blk_ids(self):
-        """See `Exodus.get_elem_blk_ids()`"""
-        return self.get_elem_blk_ids()
-
-    def get_element_blk_idx(self, id_blk):
-        """See `Exodus.get_elem_blk_idx()`"""
-        return self.get_elem_blk_idx(id_blk)
-
-    def get_element_blk_info(self, id_blk):
-        """See `Exodus.get_elem_blk_info()`"""
-        return self.get_elem_blk_info(id_blk)
-
-    def get_element_blk_name(self, id_blk):
-        """ See `Exodus.get_elem_blk_name()`"""
-        return self.get_elem_blk_name(id_blk)
-
-    def get_element_blk_names(self):
-        """See `Exodus.get_elem_blk_names()`"""
-        return self.get_elem_blk_names()
-
-    def get_element_centroids(self):
-        """See `Exodus.get_elem_centroids()`"""
-        return self.get_elem_centroids()
-
-    def get_element_connectivity(self, id_blk):
-        """See `Exodus.get_elem_connectivity()`"""
-        return self.get_elem_connectivity(id_blk)
-
-    def get_element_connectivity_full(self):
-        """See `Exodus.get_elem_connectivity_full()`"""
-        return self.get_elem_connectivity_full()
-
-    def get_element_id_map(self):
-        """See `Exodus.get_elem_id_map()`"""
-        return self.get_elem_id_map()
-
-    def get_element_order_map(self):
-        """See `Exodus.get_elem_order_map()`"""
-        return self.get_elem_order_map()
-
-    def get_element_property_names(self):
-        return self.get_elem_property_names()
-
-    def get_element_property_value(self, id_blk, name):
-        return self.get_elem_property_value(id_blk, name)
-
-    def get_element_type(self, id_blk):
-        """See `Exodus.get_elem_type()`"""
-        return self.get_elem_type(id_blk)
-
-    def get_element_variable_names(self):
-        """See `Exodus.get_elem_variable_names()`"""
-        return self.get_elem_variable_names()
-
-    def get_element_variable_number(self):
-        """See `Exodus.get_elem_variable_number()`"""
-        return self.get_elem_variable_number()
-
-    def get_element_variable_truth_table(self):
-        return self.get_elem_variable_truth_table()
-
-    def get_element_variable_values(self, id_blk, name_var, step):
-        """See `Exodus.get_elem_variable_values()`"""
-        return self.get_elem_variable_values(id_blk, name_var, step)
-
-    def get_element_variable_values_all(self, name_var):
-        """See `Exodus.get_elem_variable_values_all()`"""
-        return self.get_elem_variable_values_all(name_var)
-
-    def get_element_variable_values_block(self, id_blk, name_var):
-        """See `Exodus.get_elem_variable_values_block()`"""
-        return self.get_elem_variable_values_block(id_blk, name_var)
+    get_element_variable_values_block = get_elem_variable_values_block
 
     # get_global ------------------------------------------------------------ #
 
@@ -1227,6 +1133,36 @@ class Exodus():
         idxs_elem_in_blk = self.get_idxs_elem_in_blk(id_blk)
         return self.get_elem_id_map()[idxs_elem_in_blk]
 
+    get_ids_element_in_blk = get_ids_elem_in_blk
+
+    def get_idx_ns(self, id_ns) -> int:
+        """Get the index of a node set.
+
+        Returns:
+            Returns a 0-based index if the node set exists. If the node set
+            doesn't exist, an empty numpy array is returned instead.
+        """
+        try:
+            ns_idx = list(self.get_node_set_ids()).index(id_ns)
+        except ValueError:
+            print(f'This mesh has no side set whose id_ss={id_ns}')
+            ns_idx = ARRAY_EMPTY
+        return ns_idx
+
+    def get_idx_ss(self, id_ss) -> int:
+        """Get the index of a side set.
+
+        Returns:
+            Returns a 0-based index if the side set exists. If the side set
+            doesn't exist, an empty numpy array is returned instead.
+        """
+        try:
+            ss_idx = list(self.get_side_set_ids()).index(id_ss)
+        except ValueError:
+            print(f'This mesh has no side set whose id_ss={id_ss}')
+            ss_idx = ARRAY_EMPTY
+        return ss_idx
+
     def get_idxs_elem(self, ids_elem):
         """Get indices of elements with given ids
 
@@ -1238,6 +1174,8 @@ class Exodus():
         """
         elem_id_map = self.get_elem_id_map()
         return np.array([np.where(elem_id_map == i)[0][0] for i in ids_elem])
+
+    get_idxs_element = get_idxs_elem
 
     def get_idxs_elem_in_blk(self, id_blk):
         """Return the indices of the elements in a given block
@@ -1255,10 +1193,14 @@ class Exodus():
         end = self.idxs_elem_start_blk[idx_blk + 1]
         return np.arange(begin, end)
 
+    get_idxs_element_in_blk = get_idxs_elem_in_blk
+
     def get_idxs_elem_start_blk(self):
         """`numpy.ndarray`: The index of each element start block"""
         ids_blk = self.get_elem_blk_ids()
         return np.cumsum([0] + [self.num_elems_in_blk(i) for i in ids_blk])
+
+    get_idxs_element_start_blk = get_idxs_elem_start_blk
 
     def get_idxs_node(self, ids_node):
         """Get indices of nodes with given ids
@@ -1297,6 +1239,8 @@ class Exodus():
         if name_netcdf in self.dataset.variables:
             return name_netcdf
         raise KeyError(f'No variable {name} on block {id_blk}')
+
+    get_name_element_variable_netcdf = get_name_elem_variable_netcdf
 
     def get_name_node_variable_netcdf(self, name):
         if name in self.dataset.variables:
@@ -1515,25 +1459,28 @@ class Exodus():
         key = f'num_att_in_blk{self.get_elem_blk_idx(id_blk) + 1}'
         return self.dataset.dimensions.get(key, DIMENSION_ZERO).size
 
+    get_num_attributes = get_num_attr
+    num_attr = get_num_attr
+
     def get_num_blks(self) -> int:
         """Get the number of element blocks."""
         return self.dataset.dimensions.get('num_el_blk', DIMENSION_ZERO).size
+
+    num_blks = get_num_blks
 
     def get_num_dimensions(self) -> int:
         """Get the number of dimensions."""
         return self.dataset.dimensions.get('num_dim', DIMENSION_ZERO).size
 
-    def get_num_elements(self) -> int:
-        """See `Exodus.get_num_elems()`"""
-        return self.get_num_elems()
+    num_dimensions = get_num_dimensions
 
     def get_num_elems(self) -> int:
         """Get the number of elements."""
         return self.dataset.dimensions.get('num_elem', DIMENSION_ZERO).size
 
-    def get_num_elements_in_blk(self, id_blk) -> int:
-        """See `Exodus.get_num_elems_in_blk()`"""
-        return self.get_num_elems_in_blk(id_blk)
+    get_num_elements = get_num_elems
+    num_elems = get_num_elems
+    num_elements = get_num_elems
 
     def get_num_elems_in_blk(self, id_blk) -> int:
         """Get the number of elements in a specified element block.
@@ -1544,6 +1491,10 @@ class Exodus():
         idx = self.get_elem_blk_idx(id_blk) + 1
         return self.dataset.variables[f'connect{idx}'].shape[0]
 
+    get_num_elements_in_blk = get_num_elems_in_blk
+    num_elems_in_blk = get_num_elems_in_blk
+    num_elements_in_blk = get_num_elems_in_blk
+
     def get_num_faces_in_side_set(self, id_ss) -> int:
         """Get the number of faces on a specified side set.
 
@@ -1553,18 +1504,26 @@ class Exodus():
         dimensions = self.dataset.dimensions
         return dimensions.get(f'num_side_ss{id_ss}', ARRAY_EMPTY).size
 
+    num_faces_in_side_set = get_num_faces_in_side_set
+
     def get_num_info_records(self) -> int:
         """Get the number of info records."""
         return self.dataset.dimensions.get('num_info', DIMENSION_ZERO).size
+
+    num_info_records = get_num_info_records
 
     def get_num_node_sets(self) -> int:
         """Get the number of node side sets."""
         dimensions = self.dataset.dimensions
         return dimensions.get('num_node_sets', DIMENSION_ZERO).size
 
+    num_node_sets = get_num_node_sets
+
     def get_num_nodes(self) -> int:
         """Get the number of nodes in the mesh."""
         return self.dataset.dimensions.get('num_nodes', DIMENSION_ZERO).size
+
+    num_nodes = get_num_nodes
 
     def get_num_nodes_in_node_set(self, id_ns) -> int:
         """Get the number of nodes in a specified node set.
@@ -1574,6 +1533,8 @@ class Exodus():
             """
         dimensions = self.dataset.dimensions
         return dimensions.get(f'num_nod_ns{id_ns}', ARRAY_EMPTY).size
+
+    num_nodes_in_node_set = get_num_nodes_in_node_set
 
     def get_num_nodes_per_elem(self, id_blk) -> int:
         """Get the number of nodes per element.
@@ -1590,18 +1551,28 @@ class Exodus():
             num_nodes = ARRAY_EMPTY
         return num_nodes
 
+    get_num_nodes_per_element = get_num_nodes_per_elem
+    num_nodes_per_elem = get_num_nodes_per_elem
+    num_nodes_per_element = get_num_nodes_per_elem
+
     def get_num_side_sets(self) -> int:
         """Get the number of side sets."""
         return self.dataset.dimensions.get(
             'num_side_sets', DIMENSION_ZERO).size
 
+    num_side_sets = get_num_side_sets
+
     def get_num_times(self) -> int:
         """Get the number of time steps."""
         return self.dataset.dimensions.get('time_step', DIMENSION_ZERO).size
 
+    num_times = get_num_times
+
     def get_num_qa_records(self) -> int:
         """Get the number of qa records."""
         return self.dataset.dimensions.get('num_qa_rec', DIMENSION_ZERO).size
+
+    num_qa_records = get_num_qa_records
 
     # ----------------------------------------------------------------------- #
 
@@ -1794,6 +1765,8 @@ class Exodus():
         """Get the Exodus version number."""
         return str(self.version)
 
+    version_num = get_version_num
+
     # exodus.py set methods ------------------------------------------------- #
 
     def set_elem_variable_number(self, num_vars):
@@ -1805,15 +1778,13 @@ class Exodus():
             'name_elem_var', np.dtype('S1'), dimensions=dimensions)
         return True
 
-    def set_element_variable_number(self, num_vars):
-        return self.set_elem_variable_number(num_vars)
+    set_element_variable_number = set_elem_variable_number
 
     def set_elem_variable_truth_table(self, table):
         self.dataset.variables['elem_var_tab'] = table
         return True
 
-    def set_element_variable_truth_table(self, table):
-        return self.set_elem_variable_truth_table(table)
+    set_element_variable_truth_table = set_elem_variable_truth_table
 
     def set_global_variable_number(self, num_vars):
         if num_vars > 0:
@@ -1840,8 +1811,15 @@ class Exodus():
             self.dataset.variables['nset_var_tab'][:] = table
         return True
 
-    def set_node_variable_number(self):
-        warn('Method not implemented: set_node_variable_number')
+    def set_node_variable_number(self, num_vars):
+        if num_vars > 0:
+            if 'num_nod_var' in self.dataset.dimensions:
+                return self.get_node_variable_number() == num_vars
+            self.dataset.createDimension('num_nod_var', num_vars)
+            dimensions = ('time_step', 'num_nod_var', 'num_nodes')
+            self.dataset.createVariable(
+                'vals_nod_var', np.dtype('float'), dimensions=dimensions)
+        return True
 
     def set_side_set_variable_number(self, num_vars):
         if num_vars > 0:
@@ -1964,6 +1942,8 @@ class Exodus():
             self.dataset.variables['eb_prop1'][idx] = ids_blk[idx]
         return True
 
+    put_concat_element_blk = put_concat_elem_blk
+
     def put_coord_names(self, coord_names) -> bool:
         """Store the names of each coordinate direction.
 
@@ -2027,6 +2007,10 @@ class Exodus():
         v[:] = np.array(attributes).reshape(v[:].shape)
         return True
 
+    put_elem_attributes = put_elem_attr
+    put_element_attr = put_elem_attr
+    put_element_attributes = put_elem_attr
+
     def put_elem_attr_names(self, id_blk, names) -> bool:
         """Store a list of element attribute names for a block.
 
@@ -2063,6 +2047,10 @@ class Exodus():
 
         return True
 
+    put_elem_attribute_names = put_elem_attr_names
+    put_element_attr_names = put_elem_attr_names
+    put_element_attribute_names = put_elem_attr_names
+
     def put_elem_attr_values(self, id_blk, name_attr, values) -> bool:
         """Store an element attribute value for each element in a block.
 
@@ -2091,6 +2079,10 @@ class Exodus():
                 f'No attr named {name_attr} found in block {id_blk}') from exc
         except AssertionError as exc:
             raise TypeError('len(values) must equal number of elems') from exc
+
+    put_elem_attribute_values = put_elem_attr_values
+    put_element_attr_values = put_elem_attr_values
+    put_element_attribute_values = put_elem_attr_values
 
     def put_elem_blk_info(
             self, id_blk, elem_type, num_elems,
@@ -2143,6 +2135,8 @@ class Exodus():
                     key_v2, np.dtype('float'), dimensions=(key_d1, key_d3))
         return True
 
+    put_element_blk_info = put_elem_blk_info
+
     def put_elem_blk_name(self, id_blk, name) -> bool:
         """Store an element block name.
 
@@ -2156,6 +2150,8 @@ class Exodus():
         idx = self.get_elem_blk_idx(id_blk)
         put_string(self.dataset.variables['eb_names'], name, idx=idx)
         return True
+
+    put_element_blk_name = put_elem_blk_name
 
     def put_elem_blk_names(self, names) -> bool:
         """Store a list of element block names ordered by block `index`.
@@ -2179,6 +2175,8 @@ class Exodus():
                 'element names were given.')
             return False
 
+    put_element_blk_names = put_elem_blk_names
+
     def put_elem_connectivity(self, id_blk, connectivity) -> bool:
         """Store the nodal connectivity for an element block.
 
@@ -2197,6 +2195,8 @@ class Exodus():
             return True
         except KeyError:
             return False
+
+    put_element_connectivity = put_elem_connectivity
 
     def put_elem_id_map(self, elem_id_map) -> bool:
         """Store an element ID mapping.
@@ -2222,6 +2222,8 @@ class Exodus():
         self.dataset.variables['elem_id_map'][:] = elem_id_map[:]
         return True
 
+    put_element_id_map = put_elem_id_map
+
     def put_elem_property_value(self, id_blk, name, value) -> bool:
         """Store a value for an element property
 
@@ -2238,6 +2240,8 @@ class Exodus():
         idx_blk = self.get_element_blk_idx(id_blk)
         props[idx_blk] = value
         return True
+
+    put_element_property_value = put_elem_property_value
 
     def put_elem_variable_name(self, name, idx) -> bool:
         """Store the name and index of a new element variable.
@@ -2262,6 +2266,8 @@ class Exodus():
             raise IndexError('idx exceeds the number of element variables')
         put_string(self.dataset.variables['name_elem_var'], name, idx=idx - 1)
         return True
+
+    put_element_variable_name = put_elem_variable_name
 
     def put_elem_variable_values(self, id_blk, name, step, values) -> bool:
         """Store a list of element variable values for a specified block,
@@ -2304,54 +2310,7 @@ class Exodus():
         v[step - 1, :] = values
         return True
 
-    # put_element ----------------------------------------------------------- #
-
-    def put_element_attribute(self, id_blk, attributes):
-        """See `Exodus.put_elem_attr()`."""
-        return self.put_elem_attr(id_blk, attributes)
-
-    def put_element_attribute_names(self, id_blk, names):
-        """See `Exodus.put_elem_attr_names()`."""
-        return self.put_elem_attr_names(id_blk, names)
-
-    def put_element_attribute_values(self, id_blk, name_attr, values):
-        """See `Exodus.put_elem_attr_values()`."""
-        return self.put_elem_attr_values(id_blk, name_attr, values)
-
-    def put_element_blk_info(
-            self, id_blk, elem_type, num_elems, num_nodes_per_elem,
-            num_attrs_per_elem):
-        """See `Exodus.put_elem_blk_info()`."""
-        return self.put_elem_blk_info(
-            id_blk, elem_type, num_elems, num_nodes_per_elem,
-            num_attrs_per_elem)
-
-    def put_element_blk_name(self, id_blk, name):
-        """See `Exodus.put_elem_blk_name()`."""
-        return self.put_elem_blk_name(id_blk, name)
-
-    def put_element_blk_names(self, names):
-        """See `Exodus.put_elem_blk_names()`."""
-        return self.put_elem_blk_names(names)
-
-    def put_element_connectivity(self, id_blk, connectivity):
-        """See `Exodus.put_elem_connectivity()`."""
-        return self.put_elem_connectivity(id_blk, connectivity)
-
-    def put_element_id_map(self, elem_id_map):
-        """See `Exodus.put_elem_id_map()`."""
-        return self.put_elem_id_map(elem_id_map)
-
-    def put_element_property_value(self, id_blk, name, value):
-        return self.put_elem_property_value(id_blk, name, value)
-
-    def put_element_variable_name(self, name, idx):
-        """See `Exodus.put_elem_variable_name()`."""
-        return self.put_elem_variable_name(name, idx)
-
-    def put_element_variable_values(self, id_blk, name, step, values):
-        """See `Exodus.put_elem_variable_values()`."""
-        return self.put_elem_variable_values(id_blk, name, step, values)
+    put_element_variable_values = put_elem_variable_values
 
     # put_global ------------------------------------------------------------ #
 
@@ -2708,6 +2667,15 @@ class Exodus():
             self.put_qa_record(idx, qa_record)
         return True
 
+    def put_set_params(
+            self, type_flag, id_obj, num_members, numSetDistFacts=None):
+        entity_type = get_entity_type(type_flag)
+        if entity_type == EntityType.EX_NODE_SET.value:
+            putter = self.put_node_set_params
+        elif entity_type == EntityType.EX_SIDE_SET.value:
+            putter = self.put_side_set_params
+        putter(id_obj, num_members, numSetDistFacts=numSetDistFacts)
+
     # put_side -------------------------------------------------------------- #
 
     def put_side_set(self, id_ss, side_set_elems, side_set_sides) -> bool:
@@ -2998,9 +2966,6 @@ class Exodus():
     def num_blob(self):
         warn('Method not implemented: num_blob')
 
-    def num_qa_records(self):
-        return self.get_num_qa_records()
-
     def put_assemblies(self):
         warn('Method not implemented: put_assemblies')
 
@@ -3045,9 +3010,6 @@ class Exodus():
 
     def put_reduction_variable_values(self):
         warn('Method not implemented: put_reduction_variable_values')
-
-    def put_set_params(self):
-        warn('Method not implemented: put_set_params')
 
     def put_variable_name(self):
         warn('Method not implemented: put_variable_name')
@@ -3216,6 +3178,14 @@ def get_data_exodus(mesh_name_or_object):
     else:
         raise ValueError('Input must be filename or Exodus object')
     return mesh
+
+
+def get_entity_type(type_flag):
+    """Map the entity type string to corresponding integer value."""
+    try:
+        return EntityType[type_flag].value
+    except KeyError:
+        return type_flag.value
 
 
 def put_string(variable, string, idx=...):
