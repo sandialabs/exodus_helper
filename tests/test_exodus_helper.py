@@ -1107,9 +1107,16 @@ def test_set_node_set_variable_truth_table():
     assert False
 
 
-@pytest.mark.unwritten
-def test_set_node_variable_number():
-    assert False
+def test_set_node_variable_number(dir_test_file):
+    file_path = os.path.join(dir_test_file, 'test_set_node_variable_number.g')
+    try:
+        mesh = exodus_helper.RectangularPrism(file_path, mode='w')
+        mesh.set_node_variable_number(1)
+        mesh.put_node_variable_name('test', 1)
+        assert mesh.dataset.dimensions['num_nod_var'].size == 1
+        assert mesh.get_node_variable_names()[0] == 'test'
+    finally:
+        os.remove(file_path)
 
 
 @pytest.mark.unwritten

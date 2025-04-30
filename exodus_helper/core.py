@@ -1819,6 +1819,9 @@ class Exodus():
             dimensions = ('time_step', 'num_nod_var', 'num_nodes')
             self.dataset.createVariable(
                 'vals_nod_var', np.dtype('float'), dimensions=dimensions)
+            dimensions = ('num_nod_var', 'len_name')
+            self.dataset.createVariable(
+                'name_nod_var', np.dtype('S1'), dimensions=dimensions)
         return True
 
     def set_side_set_variable_number(self, num_vars):
