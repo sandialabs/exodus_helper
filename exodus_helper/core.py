@@ -1794,6 +1794,14 @@ class Exodus():
             dimensions = ('num_glo_var', 'len_name')
             self.dataset.createVariable(
                 'name_glo_var', np.dtype('S1'), dimensions=dimensions)
+            if 'time_step' not in self.dataset.dimensions:
+                self.dataset.createDimension('time_step')
+                self.dataset.createVariable(
+                    'time_whole', np.dtype('float'), dimensions='time_step',
+                    fill_value=0.)
+            self.dataset.createVariable(
+                'vals_glo_var', np.dtype('float'),
+                dimensions=('time_step', 'num_glo_var'))
         return True
 
     def set_node_set_variable_number(self, num_vars):
@@ -1816,6 +1824,11 @@ class Exodus():
             if 'num_nod_var' in self.dataset.dimensions:
                 return self.get_node_variable_number() == num_vars
             self.dataset.createDimension('num_nod_var', num_vars)
+            if 'time_step' not in self.dataset.dimensions:
+                self.dataset.createDimension('time_step')
+                self.dataset.createVariable(
+                    'time_whole', np.dtype('float'), dimensions='time_step',
+                    fill_value=0.)
             dimensions = ('time_step', 'num_nod_var', 'num_nodes')
             self.dataset.createVariable(
                 'vals_nod_var', np.dtype('float'), dimensions=dimensions)
