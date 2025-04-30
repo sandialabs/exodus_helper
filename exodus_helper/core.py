@@ -2668,7 +2668,7 @@ class Exodus():
         return True
 
     def put_set_params(
-            self, type_flag, id_obj, num_members, numSetDistFacts=None):
+            self, type_flag, id_obj, num_members, numSetDistFacts=0):
         entity_type = get_entity_type(type_flag)
         if entity_type == EntityType.EX_NODE_SET.value:
             putter = self.put_node_set_params
