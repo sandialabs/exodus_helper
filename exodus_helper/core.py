@@ -2887,7 +2887,7 @@ class Exodus():
         self.dataset.close()
         return True
 
-    def copy(self, filename):
+    def copy(self, filename, include_transient=False):
         """Create a copy of the mesh.
 
         The .g file associated with the mesh will be created in the
@@ -2896,21 +2896,28 @@ class Exodus():
         Args:
             filename (str): Name of the .g file for the new mesh.
         """
-        dict_attrs, dict_dimensions, dict_variables = self._get_dicts_netcdf()
+        attrs, dimensions, variables = self._get_dicts_netcdf()
 
-        # time_step set to None so that it is created as an unlimited dimension
-        dict_dimensions['time_step'] = None
+        if not include_transient:
+            keys = ['time_step', 'num_nod_var', 'num_glo_var', 'num_elem_var']
+            for key in keys:
+                iterator = variables.items()
+                variables = {
+                    k: v for k, v in iterator if key not in v.dimensions}
+            dimensions.pop('time_step')
+        else:
+            dimensions['time_step'] = None
 
         # Increase number of qa records by 1 for each new instance of the mesh
         num_qa_rec = self.get_num_qa_records() + 1
-        dict_dimensions['num_qa_rec'] = num_qa_rec
+        dimensions['num_qa_rec'] = num_qa_rec
         date_stamp = time.strftime('%Y-%m-%d')
         time_stamp = time.strftime('%H:%M:%S')
-        if 'qa_records' in dict_variables:
-            _ = dict_variables.pop('qa_records')
+        if 'qa_records' in variables:
+            _ = variables.pop('qa_records')
         qa_records = self.get_qa_records()
 
-        database_copy = [dict_attrs, dict_dimensions, dict_variables]
+        database_copy = [attrs, dimensions, variables]
         mesh_copy = Exodus(
             filename,
             int_type=self.int_type,

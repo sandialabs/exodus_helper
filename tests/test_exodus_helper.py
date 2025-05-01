@@ -72,7 +72,7 @@ def test_putters(dir_test_file):
     file_path = os.path.join(dir_test_file, 'test_full.g')
     mesh_test_full = exodus_helper.Exodus(file_path)
     path_copy = os.path.join(dir_test_file, 'test_full_copy.g')
-    mesh_copy = mesh_test_full.copy(path_copy)
+    mesh_copy = mesh_test_full.copy(path_copy, include_transient=True)
 
     names = [a[0] for a in _dir_exodus_full]
     names_attr = _dir_exodus_full[-names[::-1].index('_'):]
@@ -172,7 +172,7 @@ def test_eq(dir_test_file, monkeypatch):
         mesh_eq = exodus_helper.Exodus(file_path)
         monkeypatch.setattr('builtins.input', lambda _: 'y')
         file_path_copy = os.path.join(dir_test_file, 'test_full_copy.g')
-        mesh_copy = mesh_eq.copy(file_path_copy)
+        mesh_copy = mesh_eq.copy(file_path_copy, include_transient=True)
         assert mesh_eq == mesh_copy
     finally:
         mesh_eq.close()
@@ -1797,7 +1797,7 @@ def test_copy(dir_test_file, monkeypatch):
         file_path_copy = os.path.join(dir_test_file, 'delete_me.g')
         mesh = exodus_helper.Exodus(file_path)
         monkeypatch.setattr('builtins.input', lambda _: 'y')
-        mesh_copy = mesh.copy(file_path_copy)
+        mesh_copy = mesh.copy(file_path_copy, include_transient=True)
         assert mesh == mesh_copy
 
         # Test 2
