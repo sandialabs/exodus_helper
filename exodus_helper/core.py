@@ -2901,10 +2901,11 @@ class Exodus():
         if not include_transient:
             keys = ['time_step', 'num_nod_var', 'num_glo_var', 'num_elem_var']
             for key in keys:
-                iterator = variables.items()
-                variables = {
-                    k: v for k, v in iterator if key not in v.dimensions}
-                dimensions.pop(key)
+                if key in dimensions:
+                    iterator = variables.items()
+                    variables = {
+                        k: v for k, v in iterator if key not in v.dimensions}
+                    dimensions.pop(key)
         else:
             dimensions['time_step'] = None
 
