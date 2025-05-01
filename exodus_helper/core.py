@@ -2904,7 +2904,7 @@ class Exodus():
                 iterator = variables.items()
                 variables = {
                     k: v for k, v in iterator if key not in v.dimensions}
-            dimensions.pop('time_step')
+                dimensions.pop(key)
         else:
             dimensions['time_step'] = None
 
