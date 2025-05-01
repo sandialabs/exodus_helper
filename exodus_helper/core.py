@@ -1145,7 +1145,7 @@ class Exodus():
         try:
             ns_idx = list(self.get_node_set_ids()).index(id_ns)
         except ValueError:
-            print(f'This mesh has no side set whose id_ss={id_ns}')
+            print(f'No node set found with id = {id_ns}')
             ns_idx = ARRAY_EMPTY
         return ns_idx
 
@@ -1159,7 +1159,7 @@ class Exodus():
         try:
             ss_idx = list(self.get_side_set_ids()).index(id_ss)
         except ValueError:
-            print(f'This mesh has no side set whose id_ss={id_ss}')
+            print(f'No side set found with id = {id_ss}')
             ss_idx = ARRAY_EMPTY
         return ss_idx
 
@@ -1720,7 +1720,7 @@ class Exodus():
             key = variables[f'side_ss{idx_ss}'].dimensions[0]
             num_faces = dimensions[key].size
         except KeyError:
-            print(f'This mesh has no side set whose id_ss={id_ss}')
+            print(f'No side set found with id = {id_ss}')
             num_faces = 0
             num_dist_facts = 0
         key = f'dist_fact_ss{idx_ss}'
@@ -2446,10 +2446,11 @@ class Exodus():
             `True` if successful, otherwise returns `False`.
         """
         try:
-            self.dataset.variables[f'node_ns{id_ns}'][:] = ns_nodes
+            idx = self.get_idx_ns(id_ns) + 1
+            self.dataset.variables[f'node_ns{idx}'][:] = ns_nodes
             success = True
         except KeyError:
-            print(f'There is no node set at id_ns={id_ns}')
+            print(f'No node set found with id = {id_ns}')
             success = False
         return success
 
@@ -2464,11 +2465,12 @@ class Exodus():
         Returns:
             `True` if successful, otherwise returns `False`.
         """
-        name_dist_fact = f'dist_fact_ns{id_ns}'
+        idx = self.get_idx_ns(id_ns) + 1
+        name_dist_fact = f'dist_fact_ns{idx}'
         if name_dist_fact in self.dataset.variables:
             v = self.dataset.variables[name_dist_fact]
         else:
-            name_dim = f'num_nod_ns{id_ns}'
+            name_dim = f'num_nod_ns{idx}'
             if name_dim not in self.dataset.dimensions:
                 raise KeyError(f'No node set found with id = {id_ns}')
             v = self.dataset.createVariable(
