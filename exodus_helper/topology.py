@@ -313,7 +313,7 @@ def get_dims_surface(surface):
 def get_idxs_surface_elem(nodes, connectivity, idx_start=0):
     shift = idx_start + 1
     itr = enumerate(connectivity)
-    return [(i + shift, np.where(np.in1d(c, nodes))[0] + 1) for i, c in itr]
+    return [(i + shift, np.where(np.isin(c, nodes))[0] + 1) for i, c in itr]
 
 
 def get_nodes_surface_elem(nodes, connectivity, idx_start=0):

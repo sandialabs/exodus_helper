@@ -1690,7 +1690,12 @@ class Exodus():
         connectivity = self.get_elem_connectivity_full()
         ids_node = connectivity[self.get_idxs_elem(ids_elem)]
 
-        type_elem = self.get_elem_type(self.get_element_blk_ids()[0])
+        for id_blk in self.get_elem_blk_ids():
+            ids_elem_blk = self.get_ids_elem_in_blk(id_blk)
+            if np.all(np.isin(ids_elem, ids_elem_blk)):
+                id_blk_ss = id_blk
+
+        type_elem = self.get_elem_type(id_blk_ss)
         sides = SIDES_CONNECTIVITY[type_elem]
         idxs_node = np.array([sides[i] for i in ids_side]) - 1
         ids_nodes_sides = np.unique(
