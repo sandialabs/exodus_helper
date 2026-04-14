@@ -128,7 +128,10 @@ CONNECTIVITY_SIDES = {
         (2, 3, 5, 0, 7, 12, 11, 0, 16): 2,
         (3, 4, 5, 0, 8, 13, 12, 0, 17): 3,
         (1, 5, 4, 0, 10, 13, 9, 0, 18): 4,
-        (1, 4, 3, 2, 9, 8, 7, 6, 14): 5}}
+        (1, 4, 3, 2, 9, 8, 7, 6, 14): 5},
+    'BEAM': {(1, 2): 1},
+    'TRUSS': {(1, 2): 1},
+    'SPHERE': {(1,): 1}}
 
 CONNECTIVITY_SIDES['HEX8'] = CONNECTIVITY_SIDES['HEX']
 CONNECTIVITY_SIDES['TETRA4'] = CONNECTIVITY_SIDES['TETRA']
@@ -1695,9 +1698,10 @@ class Exodus():
             if np.all(np.isin(ids_elem, ids_elem_blk)):
                 id_blk_ss = id_blk
 
-        type_elem = self.get_elem_type(id_blk_ss)
+        type_elem, _, num_nodes_elem, _ = self.get_elem_blk_info(id_blk_ss)
         sides = SIDES_CONNECTIVITY[type_elem]
-        idxs_node = np.array([sides[i] for i in ids_side]) - 1
+        idxs_node = np.array([sides[i][:num_nodes_elem] for i in ids_side]) - 1
+
         ids_nodes_sides = np.unique(
             [ids_node[i, idx] for i, idx in enumerate(idxs_node)])
 
