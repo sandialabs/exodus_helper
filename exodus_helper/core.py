@@ -2767,8 +2767,15 @@ class Exodus():
         Returns:
             `True` if successful, otherwise returns `False`.
         """
-        idx_ss = np.where(self.get_side_set_ids() == id_ss)[0][0]
-        put_string(self.dataset.variables['ss_names'], name_ss, idx=idx_ss)
+        side_set_ids = self.get_side_set_ids()
+        names = self.dataset.variables['ss_names']
+        if id_ss in side_set_ids:
+            idx_ss = np.where(self.get_side_set_ids() == id_ss)[0][0]
+        else:
+            idx_ss = np.where(np.all(names[:].mask, axis=1))[0][0]
+            self.dataset.variables['ss_status'][idx_ss] = 1
+            self.dataset.variables['ss_prop1'][idx_ss] = id_ss
+        put_string(names, name_ss, idx=idx_ss)
         return True
 
     def put_side_set_names(self, names_ss) -> bool:

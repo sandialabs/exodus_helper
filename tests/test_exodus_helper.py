@@ -982,12 +982,35 @@ def test_get_side_set_ids(mesh):
         assert set_ids[i] == i + 1
 
 
-def test_get_side_set_name(mesh):
+def test_get_side_set_name(mesh, dir_test_file):
     # Put and get a name to each side set
     for i in range(1, 7):
         assert mesh.put_side_set_name(i, f'test_ss_name{i}')
         name = mesh.get_side_set_name(i)
         assert name == f'test_ss_name{i}'
+
+    try:
+        file_path = os.path.join(dir_test_file, 'test_put_name.g')
+        mesh_test = exodus_helper.Exodus(
+            file_path,
+            mode='w',
+            num_nodes=8,
+            num_elem=1,
+            num_el_blk=1,
+            num_node_sets=2,
+            num_side_sets=2,
+            num_nod_nss=[1, 4],
+            num_side_sss=[1, 2])
+
+        names_test = ['test_4', 'test_2']
+        mesh_test.put_side_set_name(4, names_test[0])
+        mesh_test.put_side_set_name(2, names_test[1])
+
+        names_check = mesh_test.get_side_set_names()
+        assert np.all(names_check == names_test)
+        mesh_test.close()
+    finally:
+        os.remove(file_path)
 
 
 def test_get_side_set_names(mesh):
@@ -1664,11 +1687,6 @@ def test_put_side_set_dist_fact(mesh):
     mesh.put_side_set_dist_fact(1, [0.1, 0.1, 0.1, 0.1])
     ss_df = mesh.get_side_set_dist_fact(1)
     assert ss_df[0] == 0.1 and ss_df[1] == 0.1
-
-
-def test_put_side_set_name(mesh):
-    # Putter tested along side the getter
-    test_get_side_set_name(mesh)
 
 
 def test_put_side_set_names(mesh):
