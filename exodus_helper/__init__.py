@@ -15,6 +15,7 @@ __version_info__ = parse(__version__).release
 from .core import CONNECTIVITY_SIDES
 from .core import SIDES_CONNECTIVITY
 from .core import Exodus
+from .core import add_node_set
 from .core import add_variable
 from .core import get_data_exodus
 

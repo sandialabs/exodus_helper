@@ -2549,7 +2549,7 @@ class Exodus():
             if id_ns in dataset.variables['ns_prop1']:
                 idx = list(dataset.variables['ns_prop1']).index(id_ns)
             else:
-                idx = np.argwhere(dataset.variables['ns_status'][:] == 0)[0][0]
+                idx = np.argwhere(dataset.variables['ns_status'][:] != 1)[0][0]
                 dataset.variables['ns_prop1'][idx] = id_ns
             dataset.variables['ns_status'][idx] = 1
 
@@ -3143,6 +3143,42 @@ def _set_variables_from_dict(dataset, dict_variables):
                 k, v.dtype, dimensions=v.dimensions)
         v2.setncatts({a: v.getncattr(a) for a in v.ncattrs()})
         v2[:] = v[:]
+
+
+def add_node_set(mesh, filename, id_ns, nodes, numSetDistFacts=0):
+    dataset = mesh.dataset
+    data_model = dataset.data_model
+    dataset_copy = _create_dataset(filename, data_model=data_model, mode='w')
+    dict_ncattrs, dict_dimensions, dict_variables = mesh._get_dicts_netcdf()
+    _set_ncattrs_from_dict(dataset_copy, dict_ncattrs)
+    dict_dimensions['num_node_sets'] += 1
+    if 'time_step' in dict_dimensions:
+        dict_dimensions['time_step'] = None
+    _set_dimensions_from_dict(dataset_copy, dict_dimensions)
+    keys_to_pop = []
+    for k, v in dict_variables.items():
+        if 'num_node_sets' in v.dimensions:
+            if '_FillValue' in v.ncattrs():
+                v2 = dataset_copy.createVariable(
+                    k, v.dtype, dimensions=v.dimensions,
+                    fill_value=v[:].fill_value)
+            else:
+                v2 = dataset_copy.createVariable(
+                    k, v.dtype, dimensions=v.dimensions)
+            v2.setncatts({a: v.getncattr(a) for a in v.ncattrs()})
+            v2[[slice(None, s, None) for s in v.shape]] = v[:]
+            keys_to_pop.append(k)
+    for k in keys_to_pop:
+        dict_variables.pop(k)
+    _set_variables_from_dict(dataset_copy, dict_variables)
+    mesh_add = Exodus(filename, mode='w', dataset=dataset_copy)
+    mesh_add.dataset.variables['ns_prop1'][-1] = id_ns
+    mesh_add.put_node_set_params(
+        id_ns, len(nodes), numSetDistFacts=numSetDistFacts)
+    mesh_add.put_node_set(id_ns, nodes)
+    mesh_add.put_node_set_name(id_ns, f'nodelist_{id_ns}')
+
+    return mesh_add
 
 
 def add_variable(mesh, filename, name, step, values, ids_blk=None):

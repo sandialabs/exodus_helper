@@ -191,6 +191,46 @@ def test_properties(mesh):
     assert mesh.title() == 'rectangular_prism'
 
 
+def test_add_node_set(dir_test_file):
+    path_from = os.path.join(dir_test_file, 'test_add_node_set.e')
+    mesh = exodus_helper.Exodus(path_from)
+    path_add = os.path.join(dir_test_file, 'mesh_add.e')
+    id_add = 101
+    nodes_add = [2, 3]
+    mesh_add = exodus_helper.add_node_set(
+        mesh, path_add, id_add, nodes_add)
+    dict_attrs, dict_dims, _ = mesh._get_dicts_netcdf()
+    dict_attrs_add, _, _ = mesh_add._get_dicts_netcdf()
+
+    assert dict_attrs == dict_attrs_add
+    for k in dict_dims:
+        if k in ['num_node_sets']:
+            continue
+        d = mesh.dataset.dimensions[k]
+        d_add = mesh_add.dataset.dimensions[k]
+        assert d.isunlimited() == d_add.isunlimited()
+        assert d.size == d_add.size
+
+    variables = mesh.dataset.variables
+    variables_add = mesh_add.dataset.variables
+    variables_skip = ['ns_prop1', 'ns_status', 'ns_names']
+    for k in variables:
+        if k in variables_skip:
+            continue
+        v = variables[k]
+        v_add = variables_add[k]
+        assert v.dtype == v_add.dtype
+        assert v.size == v_add.size
+        assert v.dimensions == v_add.dimensions
+        assert v.ncattrs() == v_add.ncattrs()
+        # Check that all variable values are the same
+        assert np.all(v[:].compressed() == v_add[:].compressed())
+    assert mesh_add.get_node_set_ids()[-1] == id_add
+    assert mesh_add.get_node_set_names()[-1] == f'nodelist_{id_add}'
+    assert np.allclose(mesh_add.get_node_set_nodes(id_add), nodes_add)
+    os.remove(path_add)
+
+
 def test_add_variable(dir_test_file):
     path_from = os.path.join(dir_test_file, 'test_add_variable.e')
     mesh = exodus_helper.Exodus(path_from)
