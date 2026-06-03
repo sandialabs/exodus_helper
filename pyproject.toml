@@ -19,7 +19,7 @@ classifiers = [
 packages =[{include='exodus_helper'}]
 
 [tool.poetry.dependencies]
-python = '>=3.11,<3.13'
+python = '>=3.11,<3.14'
 netCDF4 = '^1'
 numpy = '^2'
 packaging = '^24'
