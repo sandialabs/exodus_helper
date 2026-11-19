@@ -194,7 +194,7 @@ def calculate_volume_hexahedron(coords):
             positive winding.
     """
     centroid = np.mean(coords, axis=0)
-    coordinates = np.row_stack((centroid, coords))
+    coordinates = np.vstack((centroid, coords))
     ts = np.array([
         [1, 5, 2], [6, 2, 5], [2, 6, 3], [7, 3, 6], [3, 7, 4], [8, 4, 7],
         [1, 4, 5], [8, 5, 4], [1, 2, 4], [3, 4, 2], [6, 5, 7], [8, 7, 5]],
